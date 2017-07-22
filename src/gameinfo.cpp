@@ -1,6 +1,7 @@
 #include "gameinfo.hpp"
 #include <assert.h>
 #include <iomanip>
+#include <math.h>
 #include <ostream>
 #include <sstream>
 
@@ -115,6 +116,13 @@ unsigned GameWithPickedMoves::pick_count<EXACTLY_N, unsigned>(unsigned limit) {
   }
 
   return count;
+}
+
+template <>
+unsigned GameWithPickedMoves::pick_count<PERC, double>(double perc) {
+  unsigned count = floor(perc / 100.00 * this->moves.size());
+
+  return GameWithPickedMoves::pick_count<EXACTLY_N, unsigned>(count);
 }
 
 template <>
