@@ -46,6 +46,7 @@ enum CountPickStrategy { EXACTLY_N, PERC };
 
 class GameWithPickedMoves : public Game {
 public:
+  GameWithPickedMoves() {}
   GameWithPickedMoves(Game const &g) : Game(g) {}
 
   std::vector<unsigned> picked_moves_indexes;

@@ -13,35 +13,33 @@ bool Game::from_lines(const std::vector<std::string> lines) {
   for (auto line : lines) {
     if (line == "Moves") {
       move_lines = true;
+    } else if (move_lines) {
+      std::stringstream ss(line);
+      std::string move_num, white_move, black_move;
+
+      ss >> move_num >> white_move >> black_move;
+
+      Move m(white_move, black_move);
+      this->moves.push_back(m);
     } else {
-      if (move_lines) {
-        std::stringstream ss(line);
-        std::string move_num, white_move, black_move;
+      std::stringstream ss(line);
+      std::string key, val;
 
-        ss >> move_num >> white_move >> black_move;
+      ss >> key >> val;
 
-        Move m(white_move, black_move);
-        this->moves.push_back(m);
+      if (key == "GameId") {
+        this->id = std::stoi(val);
+        valid_game = true;
+      } else if (key == "PlyCount") {
+        this->ply_count = std::stoi(val);
+      } else if (key == "Result") {
+        this->result = val;
+      } else if (key == "WhiteElo") {
+        this->white_elo = std::stoi(val);
+      } else if (key == "BlackElo") {
+        this->black_elo = std::stoi(val);
       } else {
-        std::stringstream ss(line);
-        std::string key, val;
-
-        ss >> key >> val;
-
-        if (key == "GameId") {
-          this->id = std::stoi(val);
-          valid_game = true;
-        } else if (key == "PlyCount") {
-          this->ply_count = std::stoi(val);
-        } else if (key == "Result") {
-          this->result = val;
-        } else if (key == "WhiteElo") {
-          this->white_elo = std::stoi(val);
-        } else if (key == "BlackElo") {
-          this->black_elo = std::stoi(val);
-        } else {
-          assert(false);
-        }
+        assert(false);
       }
     }
   }
@@ -103,7 +101,43 @@ std::vector<std::string> GameWithPickedMoves::to_lines() {
   return lines;
 }
 
-bool GameWithPickedMoves::from_lines(std::vector<std::string>) { return false; }
+bool GameWithPickedMoves::from_lines(std::vector<std::string> lines) {
+  std::vector<std::string> game_lines, picked_moves_lines;
+
+  bool picked_moves = false;
+  for (auto line : lines) {
+    if (line == "MovesPicked") {
+      picked_moves = true;
+    } else if (picked_moves) {
+      picked_moves_lines.push_back(line);
+    } else {
+      game_lines.push_back(line);
+    }
+  }
+
+  Game game;
+  if (!game.from_lines(game_lines)) {
+    return false;
+  }
+
+  *this = game;
+
+  for (auto line : picked_moves_lines) {
+    std::stringstream ss(line);
+
+    unsigned index;
+    std::string white_move, black_move;
+
+    ss >> index >> white_move >> black_move;
+
+    assert(this->moves[index - 1].white_move == white_move);
+    assert(this->moves[index - 1].black_move == black_move);
+
+    this->picked_moves_indexes.push_back(index - 1);
+  }
+
+  return true;
+}
 
 template <>
 unsigned GameWithPickedMoves::pick_count<EXACTLY_N, unsigned>(unsigned limit) {
