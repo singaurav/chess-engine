@@ -1,6 +1,8 @@
 #ifndef GAME_INFO_INCLUDED
 #define GAME_INFO_INCLUDED
 
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -16,6 +18,13 @@ struct Move {
   Move(std::string white_move, std::string black_move) {
     this->white_move = white_move;
     this->black_move = black_move;
+  }
+
+  std::string to_string() const {
+    std::stringstream ss;
+    ss << std::setw(10) << this->white_move << std::setw(10)
+       << this->black_move;
+    return ss.str();
   }
 };
 
@@ -39,7 +48,7 @@ class GameWithPickedMoves : public Game {
 public:
   GameWithPickedMoves(Game const &g) : Game(g) {}
 
-  std::vector<Move> picked_moves;
+  std::vector<unsigned> picked_moves_indexes;
 
   template <CountPickStrategy Strategy, typename Limit>
   unsigned pick_count(Limit);

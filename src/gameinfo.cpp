@@ -48,12 +48,9 @@ bool Game::from_lines(const std::vector<std::string> lines) {
   return valid_game;
 }
 
-void moves_into_stringstream(const std::vector<Move> &moves,
-                             std::stringstream &ss) {
-  for (unsigned i = 0; i < moves.size(); ++i) {
-    ss << std::setw(3) << i + 1 << std::setw(10) << moves[i].white_move
-       << std::setw(10) << moves[i].black_move << std::endl;
-  }
+void move_into_stringstream(const Move &move, unsigned index,
+                            std::stringstream &ss) {
+  ss << std::setw(3) << index << move.to_string() << std::endl;
 }
 
 void stringstream_into_lines(std::stringstream &ss,
@@ -81,7 +78,11 @@ std::vector<std::string> Game::to_lines() {
      << "       " << this->black_elo << std::endl;
 
   ss << "Moves" << std::endl;
-  moves_into_stringstream(this->moves, ss);
+
+  unsigned index = 1;
+  for (auto move : this->moves) {
+    move_into_stringstream(move, index++, ss);
+  }
   stringstream_into_lines(ss, lines);
 
   return lines;
@@ -93,7 +94,9 @@ std::vector<std::string> GameWithPickedMoves::to_lines() {
   std::stringstream ss;
   ss << "MovesPicked" << std::endl;
 
-  moves_into_stringstream(this->picked_moves, ss);
+  for (unsigned index : this->picked_moves_indexes) {
+    move_into_stringstream(this->moves[index], index + 1, ss);
+  }
   stringstream_into_lines(ss, lines);
 
   return lines;
@@ -120,7 +123,7 @@ void GameWithPickedMoves::pick_moves<RANDOM>(unsigned count) {
 
   for (unsigned i = 0; i < count; ++i) {
     unsigned index = rand() % moves.size();
-    this->picked_moves.push_back(moves[index]);
+    this->picked_moves_indexes.push_back(index);
     moves.erase(moves.begin() + index);
   }
 }
