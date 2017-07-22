@@ -32,4 +32,23 @@ public:
   std::vector<std::string> to_lines();
 };
 
+enum MovePickStrategy { RANDOM, NORMAL };
+enum CountPickStrategy { EXACTLY_N, PERC };
+
+class GameWithPickedMoves : public Game {
+public:
+  GameWithPickedMoves(Game const &g) : Game(g) {}
+
+  std::vector<Move> picked_moves;
+
+  template <CountPickStrategy Strategy, typename Limit>
+  unsigned pick_count(Limit);
+
+  template <MovePickStrategy Strategy>
+  void pick_moves(unsigned);
+
+  bool from_lines(std::vector<std::string>);
+  std::vector<std::string> to_lines();
+};
+
 #endif // #ifndef GAME_INFO_INCLUDED
