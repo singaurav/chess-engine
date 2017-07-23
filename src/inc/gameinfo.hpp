@@ -41,21 +41,21 @@ public:
   std::vector<std::string> to_lines();
 };
 
-enum MovePickStrategy { RANDOM, NORMAL };
-enum CountPickStrategy { EXACTLY_N, PERC };
+enum MoveSampleStrategy { RANDOM, NORMAL };
+enum CountSampleStrategy { EXACTLY_N, PERC };
 
-class GameWithPickedMoves : public Game {
+class GameWithSampledMoves : public Game {
 public:
-  GameWithPickedMoves() {}
-  GameWithPickedMoves(Game const &g) : Game(g) {}
+  GameWithSampledMoves() {}
+  GameWithSampledMoves(Game const &g) : Game(g) {}
 
-  std::vector<unsigned> picked_moves_indexes;
+  std::vector<unsigned> sampled_moves_indexes;
 
-  template <CountPickStrategy Strategy, typename Limit>
-  unsigned pick_count(Limit);
+  template <CountSampleStrategy Strategy, typename Limit>
+  unsigned sample_count(Limit);
 
-  template <MovePickStrategy Strategy>
-  void pick_moves(unsigned);
+  template <MoveSampleStrategy Strategy>
+  void sample_moves(unsigned);
 
   bool from_lines(std::vector<std::string>);
   std::vector<std::string> to_lines();

@@ -87,13 +87,13 @@ std::vector<std::string> Game::to_lines() {
   return lines;
 }
 
-std::vector<std::string> GameWithPickedMoves::to_lines() {
+std::vector<std::string> GameWithSampledMoves::to_lines() {
   auto lines = Game::to_lines();
 
   std::stringstream ss;
-  ss << "MovesPicked" << std::endl;
+  ss << "MovesSampled" << std::endl;
 
-  for (unsigned index : this->picked_moves_indexes) {
+  for (unsigned index : this->sampled_moves_indexes) {
     move_into_stringstream(this->moves[index], index + 1, ss);
   }
   stringstream_into_lines(ss, lines);
@@ -101,15 +101,15 @@ std::vector<std::string> GameWithPickedMoves::to_lines() {
   return lines;
 }
 
-bool GameWithPickedMoves::from_lines(std::vector<std::string> lines) {
-  std::vector<std::string> game_lines, picked_moves_lines;
+bool GameWithSampledMoves::from_lines(std::vector<std::string> lines) {
+  std::vector<std::string> game_lines, sampled_moves_lines;
 
-  bool picked_moves = false;
+  bool sampled_moves = false;
   for (auto line : lines) {
-    if (line == "MovesPicked") {
-      picked_moves = true;
-    } else if (picked_moves) {
-      picked_moves_lines.push_back(line);
+    if (line == "MovesSampled") {
+      sampled_moves = true;
+    } else if (sampled_moves) {
+      sampled_moves_lines.push_back(line);
     } else {
       game_lines.push_back(line);
     }
@@ -122,7 +122,7 @@ bool GameWithPickedMoves::from_lines(std::vector<std::string> lines) {
 
   *this = game;
 
-  for (auto line : picked_moves_lines) {
+  for (auto line : sampled_moves_lines) {
     std::stringstream ss(line);
 
     unsigned index;
@@ -133,32 +133,33 @@ bool GameWithPickedMoves::from_lines(std::vector<std::string> lines) {
     assert(this->moves[index - 1].white_move == white_move);
     assert(this->moves[index - 1].black_move == black_move);
 
-    this->picked_moves_indexes.push_back(index - 1);
+    this->sampled_moves_indexes.push_back(index - 1);
   }
 
   return true;
 }
 
 template <>
-unsigned GameWithPickedMoves::pick_count<EXACTLY_N, unsigned>(unsigned limit) {
+unsigned
+GameWithSampledMoves::sample_count<EXACTLY_N, unsigned>(unsigned limit) {
   assert(limit <= this->moves.size());
   return limit;
 }
 
 template <>
-unsigned GameWithPickedMoves::pick_count<PERC, double>(double perc) {
+unsigned GameWithSampledMoves::sample_count<PERC, double>(double perc) {
   unsigned count = floor(perc / 100.00 * this->moves.size());
 
-  return GameWithPickedMoves::pick_count<EXACTLY_N, unsigned>(count);
+  return GameWithSampledMoves::sample_count<EXACTLY_N, unsigned>(count);
 }
 
 template <>
-void GameWithPickedMoves::pick_moves<RANDOM>(unsigned count) {
+void GameWithSampledMoves::sample_moves<RANDOM>(unsigned count) {
   auto moves(this->moves);
 
   for (unsigned i = 0; i < count; ++i) {
     unsigned index = rand() % moves.size();
-    this->picked_moves_indexes.push_back(index);
+    this->sampled_moves_indexes.push_back(index);
     moves.erase(moves.begin() + index);
   }
 }
