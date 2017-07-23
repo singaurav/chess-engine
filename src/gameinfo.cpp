@@ -141,15 +141,8 @@ bool GameWithPickedMoves::from_lines(std::vector<std::string> lines) {
 
 template <>
 unsigned GameWithPickedMoves::pick_count<EXACTLY_N, unsigned>(unsigned limit) {
-  unsigned count;
-
-  if (limit <= this->moves.size()) {
-    count = limit;
-  } else {
-    assert(false);
-  }
-
-  return count;
+  assert(limit <= this->moves.size());
+  return limit;
 }
 
 template <>
