@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <iomanip>
 #include <math.h>
+#include <numeric>
 #include <ostream>
 #include <sstream>
 
@@ -155,11 +156,12 @@ unsigned GameWithSampledMoves::sample_count<PERC, double>(double perc) {
 
 template <>
 void GameWithSampledMoves::sample_moves<RANDOM>(unsigned count) {
-  auto moves(this->moves);
+  std::vector<unsigned> moves_indexes(this->moves.size());
+  std::iota(moves_indexes.begin(), moves_indexes.end(), 0);
 
   for (unsigned i = 0; i < count; ++i) {
-    unsigned index = rand() % moves.size();
-    this->sampled_moves_indexes.push_back(index);
-    moves.erase(moves.begin() + index);
+    unsigned index = rand() % moves_indexes.size();
+    this->sampled_moves_indexes.push_back(moves_indexes[index]);
+    moves_indexes.erase(moves_indexes.begin() + index);
   }
 }
