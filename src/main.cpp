@@ -8,10 +8,10 @@ int main(int argc, char *argv[]) {
   std::ifstream infile(argv[1]);
 
   while (get_game(game, infile)) {
-    GameWithPickedMoves game_picked_moves(game);
-    game_picked_moves.pick_moves<RANDOM>(
-        game_picked_moves.pick_count<PERC, double>(10.0));
-    put_game<std::ostream>(game_picked_moves, std::cout);
+    GameWithSampledMoves game_sampled_moves(game);
+    game_sampled_moves.sample_moves<RANDOM>(
+        game_sampled_moves.sample_count<PERC, double>(10.0));
+    put_game<std::ostream>(game_sampled_moves, std::cout);
   }
 
   return 0;
