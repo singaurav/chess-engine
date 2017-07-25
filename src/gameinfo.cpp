@@ -173,41 +173,59 @@ void GameWithSampledMoves::sample_moves<RANDOM>(unsigned count) {
 }
 
 template <>
-void GameWithPickedMoves::pick_moves<NORMAL>(unsigned count) {
+void GameWithSampledMoves::sample_moves<NORMAL>(unsigned count) {
 
-  unsigned num_moves, index,
-           stdcover = 1;
+  std::normal_distribution<double> d = generate_normal_distribution(moves.size());
+  std::vector<unsigned> indexes = sample_indices(d, moves.size(), count);
+  std::vector<unsigned>::iterator it;
+  for(it=indexes.begin(); it!=indexes.end(); it++) {
+    /*TODO: use cpp inserter instead of for loop*/
+      this->sampled_moves_indexes.push_back(*it);
+  }
+
+}
+
+std::normal_distribution<double> GameWithSampledMoves::generate_normal_distribution(unsigned num_elements) {
+  unsigned stdcover = 1;
   /* 'stdcover' = how many standard deviations are covered in half the number of moves
    * Higher the value of stdcover, lower the probability of starting and ending moves
    * getting picked.
    * */
-  double mean, stddev, ulimit, llimit, number, fn, cn;
-  std::set<int> indexes;
+  double mean, stddev;
+  mean = (num_elements - 1) / 2;
+  stddev = (num_elements / 2) / stdcover;
+  return std::normal_distribution<double>(mean, stddev);
+}
+
+std::vector<unsigned> GameWithSampledMoves::sample_indices(std::normal_distribution<double> distribution, unsigned num_elements, unsigned num_samples) {
+
+  if(num_samples > num_elements) {
+    /* TODO: use some logger library */
+    std::cout << "WARNING: num_samples greater than num_elements. Using num_samples = num_elements.";
+    num_samples = num_elements;
+  }
+
+  unsigned index;
+  double ulimit, llimit, number, fn, cn;
+  std::set<unsigned> indexes;
 
   /* Example to illustrate the idea.
-   * If num_moves is 3.
-   * mean = 1
-   * stddev = 1.5 (assumingg stdcover = 1)
+   * If num_elements is 3.
    * llimit = -0.5, ulimit = 2.5
    * [-0.5,0.5) -> 0
    * [0.5,1.5)  -> 1
    * [1.5,2.5)  -> 2
    */
-  num_moves = moves.size();
-  mean = (num_moves - 1) / 2;
-  stddev = (num_moves / 2) / stdcover;
   std::default_random_engine generator;
   generator.seed(time(0));
-  std::normal_distribution<double> distribution(mean, stddev);
-  llimit = -0.5, ulimit = num_moves - 0.5;
+  llimit = -0.5, ulimit = num_elements - 0.5;
 
-  std::cout << "num_moves = " << num_moves << std::endl;
-  std::cout << "mean = " << mean << std::endl;
-  std::cout << "stddev = " << stddev << std::endl;
+  std::cout << "num_elements = " << num_elements << std::endl;
   std::cout << "llimit = " << llimit << std::endl;
   std::cout << "ulimit = " << ulimit << std::endl;
 
-  while(count) {
+  while(num_samples) {
+    /* sample from distribution and get index */
     do {
         number = distribution(generator);
         std::cout << "Try: " << number << std::endl;
@@ -216,21 +234,22 @@ void GameWithPickedMoves::pick_moves<NORMAL>(unsigned count) {
     fn = floor(number);
     cn = ceil(number);
     index = ((cn-number) < (fn-number)) ? cn : fn;
+
+    /* no repetetion of indices */
     if(indexes.find(index) != indexes.end())
         continue;
     indexes.insert(index);
-    count -= 1;
 
+    num_samples -= 1;
   }
 
   /* print 1-based indexes */
-  std::set<int>::iterator it;
+  std::set<unsigned>::iterator it;
   std::cout << "indexes = ";
   for(it=indexes.begin(); it!=indexes.end(); it++) {
-    /*TODO: use cpp inserter instead of for loop*/
-      this->picked_moves_indexes.push_back(*it);
     std::cout << *it+1 << " ";
   }
   std::cout << "\n";
 
+  return std::vector<unsigned>(indexes.begin(), indexes.end());
 }
