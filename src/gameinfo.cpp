@@ -11,6 +11,8 @@
 #include <vector>
 #include <iostream>
 #include <ctime>
+#include <iterator>
+#include "utils.cpp"
 
 bool Game::from_lines(const std::vector<std::string> lines) {
   bool valid_game = false;
@@ -162,94 +164,18 @@ unsigned GameWithSampledMoves::sample_count<PERC, double>(double perc) {
 
 template <>
 void GameWithSampledMoves::sample_moves<RANDOM>(unsigned count) {
-  std::vector<unsigned> moves_indexes(this->moves.size());
-  std::iota(moves_indexes.begin(), moves_indexes.end(), 0);
 
-  for (unsigned i = 0; i < count; ++i) {
-    unsigned index = rand() % moves_indexes.size();
-    this->sampled_moves_indexes.push_back(moves_indexes[index]);
-    moves_indexes.erase(moves_indexes.begin() + index);
-  }
+  std::uniform_int_distribution<int> d(0, moves.size()-1);
+  std::vector<unsigned> indexes = utils::sample_indices< std::uniform_int_distribution<int> >(d, moves.size(), count);
+  for (unsigned i = 0; i < count; ++i)
+    sampled_moves_indexes.push_back(indexes[i]);
 }
 
 template <>
 void GameWithSampledMoves::sample_moves<NORMAL>(unsigned count) {
 
-  std::normal_distribution<double> d = generate_normal_distribution(moves.size());
-  std::vector<unsigned> indexes = sample_indices(d, moves.size(), count);
-  std::vector<unsigned>::iterator it;
-  for(it=indexes.begin(); it!=indexes.end(); it++) {
-    /*TODO: use cpp inserter instead of for loop*/
-      this->sampled_moves_indexes.push_back(*it);
-  }
-
-}
-
-std::normal_distribution<double> GameWithSampledMoves::generate_normal_distribution(unsigned num_elements) {
-  unsigned stdcover = 1;
-  /* 'stdcover' = how many standard deviations are covered in half the number of moves
-   * Higher the value of stdcover, lower the probability of starting and ending moves
-   * getting picked.
-   * */
-  double mean, stddev;
-  mean = (num_elements - 1) / 2;
-  stddev = (num_elements / 2) / stdcover;
-  return std::normal_distribution<double>(mean, stddev);
-}
-
-std::vector<unsigned> GameWithSampledMoves::sample_indices(std::normal_distribution<double> distribution, unsigned num_elements, unsigned num_samples) {
-
-  if(num_samples > num_elements) {
-    /* TODO: use some logger library */
-    std::cout << "WARNING: num_samples greater than num_elements. Using num_samples = num_elements.";
-    num_samples = num_elements;
-  }
-
-  unsigned index;
-  double ulimit, llimit, number, fn, cn;
-  std::set<unsigned> indexes;
-
-  /* Example to illustrate the idea.
-   * If num_elements is 3.
-   * llimit = -0.5, ulimit = 2.5
-   * [-0.5,0.5) -> 0
-   * [0.5,1.5)  -> 1
-   * [1.5,2.5)  -> 2
-   */
-  std::default_random_engine generator;
-  generator.seed(time(0));
-  llimit = -0.5, ulimit = num_elements - 0.5;
-
-  std::cout << "num_elements = " << num_elements << std::endl;
-  std::cout << "llimit = " << llimit << std::endl;
-  std::cout << "ulimit = " << ulimit << std::endl;
-
-  while(num_samples) {
-    /* sample from distribution and get index */
-    do {
-        number = distribution(generator);
-        std::cout << "Try: " << number << std::endl;
-    } while(number <= llimit || number >= ulimit);
-    std::cout << "Number: " << number << std::endl;
-    fn = floor(number);
-    cn = ceil(number);
-    index = ((cn-number) < (fn-number)) ? cn : fn;
-
-    /* no repetetion of indices */
-    if(indexes.find(index) != indexes.end())
-        continue;
-    indexes.insert(index);
-
-    num_samples -= 1;
-  }
-
-  /* print 1-based indexes */
-  std::set<unsigned>::iterator it;
-  std::cout << "indexes = ";
-  for(it=indexes.begin(); it!=indexes.end(); it++) {
-    std::cout << *it+1 << " ";
-  }
-  std::cout << "\n";
-
-  return std::vector<unsigned>(indexes.begin(), indexes.end());
+  std::normal_distribution<double> d = utils::generate_normal_distribution(moves.size());
+  std::vector<unsigned> indexes = utils::sample_indices< std::normal_distribution<double> >(d, moves.size(), count);
+  for (unsigned i = 0; i < count; ++i)
+    sampled_moves_indexes.push_back(indexes[i]);
 }
