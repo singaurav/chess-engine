@@ -5,6 +5,14 @@
 #include <numeric>
 #include <ostream>
 #include <sstream>
+#include <set>
+#include <cmath>
+#include <random>
+#include <vector>
+#include <iostream>
+#include <ctime>
+#include <iterator>
+#include "utils.cpp"
 
 bool Game::from_lines(const std::vector<std::string> lines) {
   bool valid_game = false;
@@ -156,12 +164,18 @@ unsigned GameWithSampledMoves::sample_count<PERC, double>(double perc) {
 
 template <>
 void GameWithSampledMoves::sample_moves<RANDOM>(unsigned count) {
-  std::vector<unsigned> moves_indexes(this->moves.size());
-  std::iota(moves_indexes.begin(), moves_indexes.end(), 0);
 
-  for (unsigned i = 0; i < count; ++i) {
-    unsigned index = rand() % moves_indexes.size();
-    this->sampled_moves_indexes.push_back(moves_indexes[index]);
-    moves_indexes.erase(moves_indexes.begin() + index);
-  }
+  std::uniform_int_distribution<int> d(0, moves.size()-1);
+  std::vector<unsigned> indexes = utils::sample_indices< std::uniform_int_distribution<int> >(d, moves.size(), count);
+  for (unsigned i = 0; i < count; ++i)
+    sampled_moves_indexes.push_back(indexes[i]);
+}
+
+template <>
+void GameWithSampledMoves::sample_moves<NORMAL>(unsigned count) {
+
+  std::normal_distribution<double> d = utils::generate_normal_distribution(moves.size());
+  std::vector<unsigned> indexes = utils::sample_indices< std::normal_distribution<double> >(d, moves.size(), count);
+  for (unsigned i = 0; i < count; ++i)
+    sampled_moves_indexes.push_back(indexes[i]);
 }
