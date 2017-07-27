@@ -2,11 +2,12 @@
 
 namespace utils {
 
-std::normal_distribution<double> generate_normal_distribution(unsigned num_elements) {
+std::normal_distribution<double>
+generate_normal_distribution(unsigned num_elements) {
   unsigned stdcover = 1;
-  /* 'stdcover' = how many standard deviations are covered in half the number of moves
-   * Higher the value of stdcover, lower the probability of starting and ending moves
-   * getting picked.
+  /* 'stdcover' = how many standard deviations are covered in half the number of
+   * moves Higher the value of stdcover, lower the probability of starting and
+   * ending moves getting picked.
    * */
   double mean, stddev;
   mean = (num_elements - 1) / 2;
@@ -14,10 +15,11 @@ std::normal_distribution<double> generate_normal_distribution(unsigned num_eleme
   return std::normal_distribution<double>(mean, stddev);
 }
 
-template<typename T>
-std::vector<unsigned> sample_indices(T distribution, unsigned num_elements, unsigned num_samples) {
+template <typename T>
+std::vector<unsigned> sample_indices(T distribution, unsigned num_elements,
+                                     unsigned num_samples) {
 
-  if(num_samples > num_elements) {
+  if (num_samples > num_elements) {
     num_samples = num_elements;
   }
 
@@ -36,22 +38,22 @@ std::vector<unsigned> sample_indices(T distribution, unsigned num_elements, unsi
   generator.seed(time(0));
   llimit = -0.5, ulimit = num_elements - 0.5;
 
-  while(num_samples) {
+  while (num_samples) {
     /* sample from distribution and get index */
     do {
-        number = distribution(generator);
-        std::cout << "Try: " << number << std::endl;
-    } while(number <= llimit || number >= ulimit);
+      number = distribution(generator);
+      std::cout << "Try: " << number << std::endl;
+    } while (number <= llimit || number >= ulimit);
     std::cout << "Number: " << number << std::endl;
     fn = floor(number);
     std::cout << "Floor: " << fn << std::endl;
     cn = ceil(number);
     std::cout << "Ceil: " << cn << std::endl;
-    index = ((cn-number) < (number-fn)) ? cn : fn;
+    index = ((cn - number) < (number - fn)) ? cn : fn;
 
     /* no repetetion of indices */
-    if(indexes.find(index) != indexes.end())
-        continue;
+    if (indexes.find(index) != indexes.end())
+      continue;
 
     indexes.insert(index);
     num_samples -= 1;
@@ -60,4 +62,4 @@ std::vector<unsigned> sample_indices(T distribution, unsigned num_elements, unsi
   return std::vector<unsigned>(indexes.begin(), indexes.end());
 }
 
-};
+}; // namespace utils

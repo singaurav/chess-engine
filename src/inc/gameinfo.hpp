@@ -2,10 +2,10 @@
 #define GAME_INFO_INCLUDED
 
 #include <iomanip>
+#include <random>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <random>
 
 class AbstractGame {
 public:
@@ -80,15 +80,16 @@ public:
   std::vector<std::string> to_lines();
 
 private:
-
   /* generate NORMAL cdf vector for given number of elements
    * TODO: move to a factory later
    * */
-  std::normal_distribution<double> generate_normal_distribution(unsigned num_elements);
+  std::normal_distribution<double>
+  generate_normal_distribution(unsigned num_elements);
 
   /* sample indices without repetition using given cdf */
-  std::vector<unsigned> sample_indices(std::normal_distribution<double> distribution, unsigned num_elements, unsigned num_samples);
-
+  std::vector<unsigned>
+  sample_indices(std::normal_distribution<double> distribution,
+                 unsigned num_elements, unsigned num_samples);
 };
 
 #endif // #ifndef GAME_INFO_INCLUDED
