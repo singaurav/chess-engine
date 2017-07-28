@@ -20,5 +20,5 @@ before_script:
 
 script:
   - cd chess-engine-build
-  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ../chess-engine
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
   - make
