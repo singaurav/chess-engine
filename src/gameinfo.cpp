@@ -167,7 +167,7 @@ void GameWithSampledMoves::sample_moves<RANDOM>(unsigned count) {
 
   std::uniform_int_distribution<int> d(0, moves.size() - 1);
   std::vector<unsigned> indexes =
-      utils::sample_indices<std::uniform_int_distribution<int>>(d, moves.size(),
+      Utils::sample_indices<std::uniform_int_distribution<int>>(d, moves.size(),
                                                                 count);
   for (unsigned i = 0; i < count; ++i)
     sampled_moves_indexes.push_back(indexes[i]);
@@ -177,9 +177,9 @@ template <>
 void GameWithSampledMoves::sample_moves<NORMAL>(unsigned count) {
 
   std::normal_distribution<double> d =
-      utils::generate_normal_distribution(moves.size());
+      Utils::generate_normal_distribution(moves.size());
   std::vector<unsigned> indexes =
-      utils::sample_indices<std::normal_distribution<double>>(d, moves.size(),
+      Utils::sample_indices<std::normal_distribution<double>>(d, moves.size(),
                                                               count);
   for (unsigned i = 0; i < count; ++i)
     sampled_moves_indexes.push_back(indexes[i]);
