@@ -1,6 +1,8 @@
+#include <iostream>
 #include <random>
+#include <set>
 
-namespace utils {
+namespace Utils {
 
 std::normal_distribution<double>
 generate_normal_distribution(unsigned num_elements) {
@@ -62,4 +64,4 @@ std::vector<unsigned> sample_indices(T distribution, unsigned num_elements,
   return std::vector<unsigned>(indexes.begin(), indexes.end());
 }
 
-}; // namespace utils
+}; // namespace Utils

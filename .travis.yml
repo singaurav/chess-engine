@@ -1,0 +1,24 @@
+language: cpp
+sudo: required
+dist: trusty
+
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-6', 'cmake']
+      env:
+        - COMPILER=g++-6
+
+before_script:
+  - g++ --version
+  - cmake --version
+  - mkdir chess-engine-build
+
+script:
+  - cd chess-engine-build
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
+  - make

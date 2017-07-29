@@ -1,5 +1,5 @@
 ## Overview
-TBD
+[![Build Status](https://travis-ci.org/singaurav/chess-engine.svg?branch=master)](https://travis-ci.org/singaurav/chess-engine)
 
 ## Getting started
 * #### Requirements
