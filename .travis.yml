@@ -9,7 +9,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-6', 'cmake']
+          packages: ['g++-6', 'g++-6-multilib', 'g++-multilib', 'cmake']
       env:
         - COMPILER=g++-6
 

@@ -44,13 +44,10 @@ std::vector<unsigned> sample_indices(T distribution, unsigned num_elements,
     /* sample from distribution and get index */
     do {
       number = distribution(generator);
-      std::cout << "Try: " << number << std::endl;
     } while (number <= llimit || number >= ulimit);
-    std::cout << "Number: " << number << std::endl;
+
     fn = floor(number);
-    std::cout << "Floor: " << fn << std::endl;
     cn = ceil(number);
-    std::cout << "Ceil: " << cn << std::endl;
     index = ((cn - number) < (number - fn)) ? cn : fn;
 
     /* no repetetion of indices */

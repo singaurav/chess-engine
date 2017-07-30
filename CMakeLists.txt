@@ -4,4 +4,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "-Wall -std=gnu++11")
 endif()
 
+if (UNIX)
+    set(CMAKE_CXX_FLAGS "-Wall -std=gnu++11 -pthread")
+endif (UNIX)
+
 add_subdirectory(src)
