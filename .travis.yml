@@ -20,5 +20,5 @@ before_script:
 
 script:
   - cd chess-engine-build
-  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_FLAGS="-lpthread" ..
   - make
