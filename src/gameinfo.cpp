@@ -1,5 +1,7 @@
 #include "gameinfo.hpp"
+#include "adapter.h"
 #include "utils.cpp"
+#include <algorithm>
 #include <assert.h>
 #include <cmath>
 #include <ctime>
@@ -162,8 +164,7 @@ unsigned GameWithSampledMoves::sample_count<PERC, double>(double perc) {
   return GameWithSampledMoves::sample_count<EXACTLY_N, unsigned>(count);
 }
 
-template <>
-void GameWithSampledMoves::sample_moves<RANDOM>(unsigned count) {
+template <> void GameWithSampledMoves::sample_moves<RANDOM>(unsigned count) {
 
   std::uniform_int_distribution<int> d(0, moves.size() - 1);
   std::vector<unsigned> indexes =
@@ -173,8 +174,7 @@ void GameWithSampledMoves::sample_moves<RANDOM>(unsigned count) {
     sampled_moves_indexes.push_back(indexes[i]);
 }
 
-template <>
-void GameWithSampledMoves::sample_moves<NORMAL>(unsigned count) {
+template <> void GameWithSampledMoves::sample_moves<NORMAL>(unsigned count) {
 
   std::normal_distribution<double> d =
       Utils::generate_normal_distribution(moves.size());
@@ -183,4 +183,70 @@ void GameWithSampledMoves::sample_moves<NORMAL>(unsigned count) {
                                                               count);
   for (unsigned i = 0; i < count; ++i)
     sampled_moves_indexes.push_back(indexes[i]);
+}
+
+std::map<unsigned, std::vector<std::string>>
+GameWithAltMoves::get_alt_moves_map(GameWithSampledMoves const &g) {
+  std::map<unsigned, std::vector<std::string>> alt_moves_map;
+
+  for (unsigned index : g.sampled_moves_indexes) {
+
+    std::vector<std::string> uci_commands;
+    std::string set_pos_cmd =
+        "position fen "
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
+        "moves";
+
+    for (unsigned i = 0; i < index; ++i) {
+      set_pos_cmd += " " + g.moves[i].white_move;
+      set_pos_cmd += " " + g.moves[i].black_move;
+    }
+
+    if (g.result == "0-1") {
+      set_pos_cmd += " " + g.moves[index].white_move;
+    }
+
+    uci_commands.push_back(set_pos_cmd);
+    uci_commands.push_back("genmoves");
+
+    auto uci_output_lines = Adapter::run_uci_commands(uci_commands);
+
+    std::string winner_move = g.result == "1-0" ? g.moves[index].white_move
+                                                : g.moves[index].black_move;
+
+    assert(std::find(uci_output_lines.begin(), uci_output_lines.end(),
+                     winner_move) != uci_output_lines.end());
+
+    std::vector<std::string> alt_moves;
+    for (auto move : uci_output_lines) {
+      assert(move.size() > 0);
+      if (move != winner_move) {
+        alt_moves.push_back(move);
+      }
+    }
+
+    alt_moves_map.insert(
+        std::pair<unsigned, std::vector<std::string>>(index, alt_moves));
+  }
+
+  return alt_moves_map;
+}
+
+std::vector<std::string> GameWithAltMoves::to_lines() {
+  auto lines = GameWithSampledMoves::to_lines();
+
+  std::stringstream ss;
+  ss << "AltMoves" << std::endl;
+
+  for (unsigned index : this->sampled_moves_indexes) {
+    ss << std::setw(3) << index + 1;
+    auto alt_moves = this->alt_moves_map.at(index);
+    for (std::string move : alt_moves) {
+      ss << std::setw(6) << move;
+    }
+    ss << std::endl;
+  }
+  stringstream_into_lines(ss, lines);
+
+  return lines;
 }
