@@ -106,7 +106,7 @@ public:
   std::map<unsigned, std::vector<std::string>>
   get_alt_moves_map(GameWithSampledMoves const &g);
 
-  // bool from_lines(std::vector<std::string>);
+  bool from_lines(std::vector<std::string>);
   std::vector<std::string> to_lines();
 };
 

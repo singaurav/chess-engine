@@ -20,7 +20,7 @@ bool get_game(Game &game, InputStream &input_stream) {
     }
   }
 
-  return game.from_lines(lines);
+  return lines.size() > 0 ? game.from_lines(lines) : false;
 }
 
 template <typename OutputStream>

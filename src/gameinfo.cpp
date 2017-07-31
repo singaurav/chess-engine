@@ -115,15 +115,15 @@ std::vector<std::string> GameWithSampledMoves::to_lines() {
 bool GameWithSampledMoves::from_lines(std::vector<std::string> lines) {
   std::vector<std::string> game_lines, sampled_moves_lines;
 
-  bool sampled_moves = false;
-  for (auto line : lines) {
-    if (line == "MovesSampled") {
-      sampled_moves = true;
-    } else if (sampled_moves) {
-      sampled_moves_lines.push_back(line);
-    } else {
-      game_lines.push_back(line);
-    }
+  auto it = lines.begin();
+  while (*it != "MovesSampled") {
+    game_lines.push_back(*it);
+    ++it;
+  }
+  ++it;
+  while (it != lines.end()) {
+    sampled_moves_lines.push_back(*it);
+    ++it;
   }
 
   Game game;
@@ -249,4 +249,47 @@ std::vector<std::string> GameWithAltMoves::to_lines() {
   stringstream_into_lines(ss, lines);
 
   return lines;
+}
+
+bool GameWithAltMoves::from_lines(std::vector<std::string> lines) {
+  std::vector<std::string> game_with_sampled_moves_lines, alt_moves_lines;
+
+  auto it = lines.begin();
+  while (*it != "AltMoves") {
+    game_with_sampled_moves_lines.push_back(*it);
+    ++it;
+  }
+  ++it;
+  while (it != lines.end()) {
+    alt_moves_lines.push_back(*it);
+    ++it;
+  }
+
+  GameWithSampledMoves game_with_sampled_moves;
+  if (!game_with_sampled_moves.from_lines(game_with_sampled_moves_lines)) {
+    return false;
+  }
+
+  *this = game_with_sampled_moves;
+
+  for (auto line : alt_moves_lines) {
+    std::stringstream ss(line);
+
+    unsigned index;
+    ss >> index;
+
+    std::vector<std::string> alt_moves;
+
+    std::string alt_move;
+    ss >> alt_move;
+    while (ss) {
+      alt_moves.push_back(alt_move);
+      ss >> alt_move;
+    }
+
+    this->alt_moves_map.insert(
+        std::pair<unsigned, std::vector<std::string>>(index - 1, alt_moves));
+  }
+
+  return true;
 }
