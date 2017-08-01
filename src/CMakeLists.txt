@@ -4,7 +4,7 @@ include_directories(external/Stockfish/src/syzygy)
 
 add_subdirectory(external/Stockfish)
 
-set(PRE_TRAIN_SRCS gameinfo.cpp)
+set(PRE_TRAIN_SRCS gameinfo.cpp utils.cpp)
 
 add_executable(pretrain ${PRE_TRAIN_SRCS} main.cpp)
 
