@@ -11,8 +11,9 @@ Utils::generate_normal_distribution(unsigned num_elements) {
    * ending moves getting picked.
    * */
   double mean, stddev;
-  mean = (num_elements - 1) / 2;
-  stddev = (num_elements / 2) / stdcover;
+  double _num_elements = (double) num_elements;
+  mean = (_num_elements - 1) / 2;
+  stddev = (_num_elements / 2) / stdcover;
   return std::normal_distribution<double>(mean, stddev);
 }
 
