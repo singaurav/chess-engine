@@ -1,11 +1,10 @@
-#include <iostream>
+#include "utils.hpp"
 #include <random>
 #include <set>
-
-namespace Utils {
+#include <vector>
 
 std::normal_distribution<double>
-generate_normal_distribution(unsigned num_elements) {
+Utils::generate_normal_distribution(unsigned num_elements) {
   unsigned stdcover = 1;
   /* 'stdcover' = how many standard deviations are covered in half the number of
    * moves Higher the value of stdcover, lower the probability of starting and
@@ -18,7 +17,7 @@ generate_normal_distribution(unsigned num_elements) {
 }
 
 template <typename T>
-std::vector<unsigned> sample_indices(T distribution, unsigned num_elements,
+std::vector<unsigned> _sample_indices(T distribution, unsigned num_elements,
                                      unsigned num_samples) {
 
   if (num_samples > num_elements) {
@@ -61,4 +60,14 @@ std::vector<unsigned> sample_indices(T distribution, unsigned num_elements,
   return std::vector<unsigned>(indexes.begin(), indexes.end());
 }
 
-}; // namespace Utils
+template <>
+std::vector<unsigned> Utils::sample_indices(std::normal_distribution<double> distribution,
+        unsigned num_elements, unsigned num_samples) {
+    return _sample_indices(distribution, num_elements, num_samples);
+}
+
+template <>
+std::vector<unsigned> Utils::sample_indices(std::uniform_int_distribution<int> distribution,
+        unsigned num_elements, unsigned num_samples) {
+    return _sample_indices(distribution, num_elements, num_samples);
+}

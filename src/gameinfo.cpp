@@ -1,6 +1,6 @@
 #include "gameinfo.hpp"
 #include "adapter.h"
-#include "utils.cpp"
+#include "utils.hpp"
 #include <algorithm>
 #include <assert.h>
 #include <cmath>
