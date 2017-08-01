@@ -5,16 +5,20 @@ dist: trusty
 matrix:
   include:
     - os: linux
-      compiler: gcc
+      compiler: clang
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-6', 'g++-6-multilib', 'g++-multilib', 'cmake']
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.6
+          packages:
+            - clang-3.6
+            - cmake
       env:
-        - COMPILER=g++-6
+        - COMPILER=clang++-3.6
 
 before_script:
-  - g++ --version
+  - clang++-3.6 --version
   - cmake --version
   - mkdir chess-engine-build
 
