@@ -164,7 +164,7 @@ unsigned GameWithSampledMoves::sample_count<PERC, double>(double perc) {
   return GameWithSampledMoves::sample_count<EXACTLY_N, unsigned>(count);
 }
 
-template <> void GameWithSampledMoves::sample_moves<RANDOM>(unsigned count) {
+template <> void GameWithSampledMoves::sample_moves<UNIFORM>(unsigned count) {
 
   std::uniform_int_distribution<int> d(0, moves.size() - 1);
   std::vector<unsigned> indexes =

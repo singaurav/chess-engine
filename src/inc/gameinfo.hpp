@@ -52,7 +52,7 @@ public:
 
 enum MoveSampleStrategy {
   // sample at random
-  RANDOM,
+  UNIFORM,
   // sample according to a normal distribution
   NORMAL
 };
