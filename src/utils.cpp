@@ -11,7 +11,7 @@ Utils::generate_normal_distribution(unsigned num_elements) {
    * ending moves getting picked.
    * */
   double mean, stddev;
-  double _num_elements = (double) num_elements;
+  double _num_elements = (double)num_elements;
   mean = (_num_elements - 1) / 2;
   stddev = (_num_elements / 2) / stdcover;
   return std::normal_distribution<double>(mean, stddev);
@@ -19,7 +19,7 @@ Utils::generate_normal_distribution(unsigned num_elements) {
 
 template <typename T>
 std::vector<unsigned> _sample_indices(T distribution, unsigned num_elements,
-                                     unsigned num_samples) {
+                                      unsigned num_samples) {
 
   if (num_samples > num_elements) {
     num_samples = num_elements;
@@ -62,13 +62,15 @@ std::vector<unsigned> _sample_indices(T distribution, unsigned num_elements,
 }
 
 template <>
-std::vector<unsigned> Utils::sample_indices(std::normal_distribution<double> distribution,
-        unsigned num_elements, unsigned num_samples) {
-    return _sample_indices(distribution, num_elements, num_samples);
+std::vector<unsigned>
+Utils::sample_indices(std::normal_distribution<double> distribution,
+                      unsigned num_elements, unsigned num_samples) {
+  return _sample_indices(distribution, num_elements, num_samples);
 }
 
 template <>
-std::vector<unsigned> Utils::sample_indices(std::uniform_int_distribution<int> distribution,
-        unsigned num_elements, unsigned num_samples) {
-    return _sample_indices(distribution, num_elements, num_samples);
+std::vector<unsigned>
+Utils::sample_indices(std::uniform_int_distribution<int> distribution,
+                      unsigned num_elements, unsigned num_samples) {
+  return _sample_indices(distribution, num_elements, num_samples);
 }
