@@ -6,7 +6,7 @@
 
 class Utils {
 public:
-  // define a pure virtual destructor to make the class abstract
+  // define a pure virtual destructor to make this class abstract
   virtual ~Utils() = 0;
 
   static std::normal_distribution<double>
