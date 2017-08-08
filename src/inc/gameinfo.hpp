@@ -78,7 +78,6 @@ public:
 
   bool from_lines(std::vector<std::string>);
   std::vector<std::string> to_lines();
-
 };
 
 class GameWithAltMoves : public GameWithSampledMoves {

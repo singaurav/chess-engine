@@ -4,14 +4,17 @@
 #include <random>
 #include <vector>
 
-namespace Utils {
+class Utils {
+public:
+  // define a pure virtual destructor to make this class abstract
+  virtual ~Utils() = 0;
 
-    std::normal_distribution<double>
-    generate_normal_distribution(unsigned num_elements);
+  static std::normal_distribution<double>
+  generate_normal_distribution(unsigned num_elements);
 
-    template <typename T>
-    std::vector<unsigned> sample_indices(T distribution, unsigned num_elements,
-                                     unsigned num_samples);
-}; // namespace Utils
+  template <typename T>
+  static std::vector<unsigned>
+  sample_indices(T distribution, unsigned num_elements, unsigned num_samples);
+};
 
 #endif // #ifndef UTILS_INCLUDED
