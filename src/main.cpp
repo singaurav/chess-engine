@@ -1,4 +1,5 @@
 #include "gameinfo.hpp"
+#include "gameinfo_calc.hpp"
 #include "io.hpp"
 #include <fstream>
 
