@@ -1,6 +1,6 @@
-include_directories(inc)
 include_directories(external/Stockfish/src)
 include_directories(external/Stockfish/src/syzygy)
+include_directories(inc)
 
 add_subdirectory(external/Stockfish)
 

@@ -2,6 +2,7 @@
 #define GAME_INFO_CALC_INCLUDED
 
 #include "gameinfo.hpp"
+#include "adapter.h"
 #include <map>
 #include <random>
 

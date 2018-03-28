@@ -1,6 +1,5 @@
 #include "gameinfo_calc.hpp"
 #include <assert.h>
-#include "adapter.h"
 #include "utils.hpp"
 #include <algorithm>
 
