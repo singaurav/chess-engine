@@ -1,7 +1,7 @@
 #include "gameinfo_calc.hpp"
-#include <assert.h>
 #include "utils.hpp"
 #include <algorithm>
+#include <assert.h>
 
 std::vector<std::string> GameWithSampledMoves::to_lines() {
   auto lines = Game::to_lines();
@@ -73,7 +73,7 @@ template <> void GameWithSampledMoves::sample_moves<UNIFORM>(unsigned count) {
 
   std::uniform_int_distribution<int> d(0, moves.size() - 1);
   std::vector<unsigned> indexes =
-      Utils::sample_indices<std::uniform_int_distribution<int> >(d, moves.size(),
+      Utils::sample_indices<std::uniform_int_distribution<int>>(d, moves.size(),
                                                                 count);
   for (unsigned i = 0; i < count; ++i)
     sampled_moves_indexes.push_back(indexes[i]);
@@ -84,7 +84,7 @@ template <> void GameWithSampledMoves::sample_moves<NORMAL>(unsigned count) {
   std::normal_distribution<double> d =
       Utils::generate_normal_distribution(moves.size());
   std::vector<unsigned> indexes =
-      Utils::sample_indices<std::normal_distribution<double> >(d, moves.size(),
+      Utils::sample_indices<std::normal_distribution<double>>(d, moves.size(),
                                                               count);
   for (unsigned i = 0; i < count; ++i)
     sampled_moves_indexes.push_back(indexes[i]);
@@ -144,12 +144,18 @@ std::vector<std::string> GameWithAltMoves::to_lines() {
   ss << "AltMoves" << std::endl;
 
   for (unsigned index : this->sampled_moves_indexes) {
-    ss << std::setw(3) << index + 1;
     auto alt_moves = this->alt_moves_map.at(index);
+    ss << std::setw(3) << index + 1 << std::setw(3) << alt_moves.size()
+       << std::endl;
+
     for (std::string move : alt_moves) {
-      ss << std::setw(6) << move;
+      if (this->result == "1-0")
+        ss << std::setw(13) << move << std::endl;
+      else if (this->result == "0-1")
+        ss << std::setw(23) << move << std::endl;
+      else
+        assert(false);
     }
-    ss << std::endl;
   }
   stringstream_into_lines(ss, lines);
 
@@ -177,23 +183,29 @@ bool GameWithAltMoves::from_lines(std::vector<std::string> lines) {
 
   *this = game_with_sampled_moves;
 
-  for (auto line : alt_moves_lines) {
-    std::stringstream ss(line);
+  unsigned index, count;
+  std::vector<std::string> alt_moves;
+  unsigned i = 0;
 
-    unsigned index;
-    ss >> index;
+  while (i < alt_moves_lines.size()) {
+    std::stringstream ss(alt_moves_lines[i]);
+    ss >> index >> count;
 
-    std::vector<std::string> alt_moves;
+    for (unsigned m = 0; m < count; ++m) {
+      ++i;
+      std::stringstream ss(alt_moves_lines[i]);
 
-    std::string alt_move;
-    ss >> alt_move;
-    while (ss) {
-      alt_moves.push_back(alt_move);
+      std::string alt_move;
       ss >> alt_move;
+
+      alt_moves.push_back(alt_move);
     }
 
     this->alt_moves_map.insert(
         std::pair<unsigned, std::vector<std::string>>(index - 1, alt_moves));
+
+    alt_moves.clear();
+    ++i;
   }
 
   return true;

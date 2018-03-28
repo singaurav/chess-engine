@@ -37,7 +37,7 @@ std::vector<unsigned> _sample_indices(T distribution, unsigned num_elements,
    * ( 1.5, 2.5) -> 2
    */
   std::default_random_engine generator;
-  generator.seed(time(0));
+  generator.seed(42);
   llimit = -0.5, ulimit = num_elements - 0.5;
 
   while (num_samples) {
