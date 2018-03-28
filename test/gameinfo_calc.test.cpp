@@ -44,6 +44,40 @@ TestCase TEST_CASES[] =
           }
       },
     }
+  },
+  {
+    2,
+    {
+      "GameId       2",
+      "Result       1-0",
+      "PlyCount       7",
+      "WhiteElo       1000",
+      "BlackElo       1000",
+      "Moves",
+      "1      d2d3      c7c6",
+      "2      e2e4      d8a5",
+      "3      c1d2      g8f6",
+      "4      d2a5",
+      "MovesSampled",
+      "3      c1d2      g8f6",
+      "4      d2a5"
+    },
+    {
+      {3, {
+            "b2b4", "c2c3", "b1c3", "b1d2", "d1d2",
+            "e1e2"
+          }
+      },
+      {4, {
+            "a2a3", "a2a4", "b2b3", "b2b4", "c2c3",
+            "c2c4", "d3d4", "e4e5", "f2f3", "f2f4",
+            "g2g3", "g2g4", "h2h3", "h2h4", "b1a3",
+            "b1c3", "d1c1", "d1e2", "d1f3", "d1g4",
+            "d1h5", "e1e2", "f1e2", "g1h3", "g1f3",
+            "g1e2", "d2c3", "d2b4"
+          }
+      }
+    }
   }
 };
 // clang-format on
