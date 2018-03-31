@@ -16,7 +16,7 @@ bool Game::from_lines(const std::vector<std::string> lines) {
 
       ss >> move_num >> white_move >> black_move;
 
-      Move m(white_move, black_move);
+      GameMove m(white_move, black_move);
       this->moves.push_back(m);
     } else {
       std::stringstream ss(line);
@@ -44,7 +44,7 @@ bool Game::from_lines(const std::vector<std::string> lines) {
   return valid_game;
 }
 
-void move_into_stringstream(const Move &move, unsigned index,
+void move_into_stringstream(const GameMove &move, unsigned index,
                             std::stringstream &ss) {
   ss << std::setw(3) << index << move.to_string() << std::endl;
 }

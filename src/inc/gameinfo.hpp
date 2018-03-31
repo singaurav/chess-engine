@@ -13,10 +13,10 @@ public:
   virtual std::vector<std::string> to_lines() = 0;
 };
 
-struct Move {
+struct GameMove {
   std::string white_move;
   std::string black_move;
-  Move(std::string white_move, std::string black_move) {
+  GameMove(std::string white_move, std::string black_move) {
     this->white_move = white_move;
     this->black_move = black_move;
   }
@@ -42,13 +42,13 @@ public:
   // elo of the black player
   int black_elo;
   // moves played in the game
-  std::vector<Move> moves;
+  std::vector<GameMove> moves;
 
   bool from_lines(std::vector<std::string>);
   std::vector<std::string> to_lines();
 };
 
-void move_into_stringstream(const Move &move, unsigned index,
+void move_into_stringstream(const GameMove &move, unsigned index,
                             std::stringstream &ss);
 
 void stringstream_into_lines(std::stringstream &ss,
