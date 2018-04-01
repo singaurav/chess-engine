@@ -145,16 +145,20 @@ std::vector<std::string> GameWithAltMoves::to_lines() {
 
   for (unsigned index : this->sampled_moves_indexes) {
     auto alt_moves = this->alt_moves_map.at(index);
-    ss << std::setw(3) << index + 1 << std::setw(3) << alt_moves.size()
-       << std::endl;
+    ss << std::setw(3) << index + 1 << std::setw(4) << alt_moves.size();
+
+    if (this->result == "1-0")
+      ss << std::setw(12) << this->moves[index].white_move << std::endl;
+    else if (this->result == "0-1")
+      ss << std::setw(24) << this->moves[index].black_move << std::endl;
+    else
+      assert(false);
 
     for (std::string move : alt_moves) {
       if (this->result == "1-0")
-        ss << std::setw(13) << move << std::endl;
+        ss << std::setw(15) << move << std::endl;
       else if (this->result == "0-1")
-        ss << std::setw(23) << move << std::endl;
-      else
-        assert(false);
+        ss << std::setw(27) << move << std::endl;
     }
   }
   stringstream_into_lines(ss, lines);

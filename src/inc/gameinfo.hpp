@@ -23,7 +23,7 @@ struct GameMove {
 
   std::string to_string() const {
     std::stringstream ss;
-    ss << std::setw(10) << this->white_move << std::setw(10)
+    ss << std::setw(12) << this->white_move << std::setw(12)
        << this->black_move;
     return ss.str();
   }

@@ -1,15 +1,21 @@
+#include "adapter.h"
 #include "gameinfo.hpp"
 #include "gameinfo_calc.hpp"
 #include "io.hpp"
-#include "adapter.h"
 #include <fstream>
 #include <iostream>
 
 int main(int argc, char *argv[]) {
-  auto lines = Adapter::run_uci_commands(std::vector<std::string>{"go"});
+  Game game;
 
-  for (auto line: lines) {
-    std::cout << line << std::endl;
+  std::ifstream infile(argv[1]);
+
+  while (get_game(game, infile)) {
+    GameWithSampledMoves game_sampled_moves(game);
+    game_sampled_moves.sample_moves<UNIFORM>(
+        game_sampled_moves.sample_count<PERC, double>(10.0));
+    GameWithAltMoves game_alt_moves(game_sampled_moves);
+    put_game<std::ostream>(game_alt_moves, std::cout);
   }
   return 0;
 }
