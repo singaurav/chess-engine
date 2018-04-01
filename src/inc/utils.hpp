@@ -15,6 +15,11 @@ public:
   template <typename T>
   static std::vector<unsigned>
   sample_indices(T distribution, unsigned num_elements, unsigned num_samples);
+
+  static std::string uci_init_moves_cmd(std::vector<std::string> moves);
+
+  static std::vector<std::string>
+  get_move_cont(std::vector<std::string> init_moves, int count);
 };
 
 #endif // #ifndef UTILS_INCLUDED

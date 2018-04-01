@@ -96,22 +96,20 @@ GameWithAltMoves::get_alt_moves_map(GameWithSampledMoves const &g) {
 
   for (unsigned index : g.sampled_moves_indexes) {
 
-    std::vector<std::string> uci_commands;
-    std::string set_pos_cmd =
-        "position fen "
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
-        "moves";
+    std::vector<std::string> init_moves;
 
     for (unsigned i = 0; i < index; ++i) {
-      set_pos_cmd += " " + g.moves[i].white_move;
-      set_pos_cmd += " " + g.moves[i].black_move;
+      init_moves.push_back(g.moves[i].white_move);
+      init_moves.push_back(g.moves[i].black_move);
     }
 
     if (g.result == "0-1") {
-      set_pos_cmd += " " + g.moves[index].white_move;
+      init_moves.push_back(g.moves[index].white_move);
     }
 
-    uci_commands.push_back(set_pos_cmd);
+    std::vector<std::string> uci_commands{
+        Utils::uci_init_moves_cmd(init_moves)};
+
     uci_commands.push_back("genmoves");
 
     auto uci_output_lines = Adapter::run_uci_commands(uci_commands);
@@ -212,5 +210,85 @@ bool GameWithAltMoves::from_lines(std::vector<std::string> lines) {
     ++i;
   }
 
+  return true;
+}
+
+std::map<unsigned, std::vector<std::string>>
+GameWithMoveConts::get_sampled_move_conts_map(GameWithAltMoves const &g,
+                                              unsigned cont_len) {
+  std::map<unsigned, std::vector<std::string>> sampled_move_conts_map;
+
+  for (unsigned index : g.sampled_moves_indexes) {
+
+    std::vector<std::string> init_moves;
+
+    for (unsigned i = 0; i < index; ++i) {
+      init_moves.push_back(g.moves[i].white_move);
+      init_moves.push_back(g.moves[i].black_move);
+    }
+
+    if (g.result == "0-1") {
+      init_moves.push_back(g.moves[index].white_move);
+      init_moves.push_back(g.moves[index].black_move);
+    } else if (g.result == "1-0") {
+      init_moves.push_back(g.moves[index].white_move);
+    } else {
+      assert(false);
+    }
+
+    sampled_move_conts_map.insert(std::pair<unsigned, std::vector<std::string>>(
+        index, Utils::get_move_cont(init_moves, cont_len)));
+  }
+
+  return sampled_move_conts_map;
+}
+
+std::map<unsigned, std::map<unsigned, std::vector<std::string>>>
+GameWithMoveConts::get_alt_move_conts_map(GameWithAltMoves const &g,
+                                          unsigned cont_len) {
+  std::map<unsigned, std::map<unsigned, std::vector<std::string>>>
+      alt_moves_map;
+
+  return alt_moves_map;
+}
+
+std::vector<std::string> GameWithMoveConts::to_lines() {
+  auto lines = GameWithSampledMoves::to_lines();
+
+  std::stringstream ss;
+  ss << "Continuations"
+     << "       " << this->cont_len << std::endl;
+
+  for (unsigned index : this->sampled_moves_indexes) {
+    auto alt_moves = this->alt_moves_map.at(index);
+    ss << std::setw(3) << index + 1 << std::setw(4) << alt_moves.size();
+
+    if (this->result == "1-0")
+      ss << std::setw(12) << this->moves[index].white_move;
+    else if (this->result == "0-1")
+      ss << std::setw(24) << this->moves[index].black_move;
+    else
+      assert(false);
+
+    ss << std::setw(6) << " -> ";
+
+    for (auto c : this->sampled_move_conts_map.at(index))
+      ss << std::setw(6) << c;
+
+    ss << std::endl;
+
+    for (std::string move : alt_moves) {
+      if (this->result == "1-0")
+        ss << std::setw(15) << move << std::endl;
+      else if (this->result == "0-1")
+        ss << std::setw(27) << move << std::endl;
+    }
+  }
+  stringstream_into_lines(ss, lines);
+
+  return lines;
+}
+
+bool GameWithMoveConts::from_lines(std::vector<std::string> lines) {
   return true;
 }

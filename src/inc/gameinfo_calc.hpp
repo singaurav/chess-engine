@@ -1,8 +1,8 @@
 #ifndef GAME_INFO_CALC_INCLUDED
 #define GAME_INFO_CALC_INCLUDED
 
-#include "gameinfo.hpp"
 #include "adapter.h"
+#include "gameinfo.hpp"
 #include <map>
 #include <random>
 
@@ -49,6 +49,30 @@ public:
 
   std::map<unsigned, std::vector<std::string>>
   get_alt_moves_map(GameWithSampledMoves const &g);
+
+  bool from_lines(std::vector<std::string>);
+  std::vector<std::string> to_lines();
+};
+
+class GameWithMoveConts : public GameWithAltMoves {
+public:
+  GameWithMoveConts() {}
+  GameWithMoveConts(GameWithAltMoves const &g, unsigned cont_len)
+      : GameWithAltMoves(g) {
+    this->cont_len = cont_len;
+    this->sampled_move_conts_map = get_sampled_move_conts_map(g, cont_len);
+    this->alt_move_conts_map = get_alt_move_conts_map(g, cont_len);
+  }
+
+  std::map<unsigned, std::vector<std::string>> sampled_move_conts_map;
+  std::map<unsigned, std::map<unsigned, std::vector<std::string>>>
+      alt_move_conts_map;
+  unsigned cont_len;
+
+  std::map<unsigned, std::vector<std::string>>
+  get_sampled_move_conts_map(GameWithAltMoves const &g, unsigned cont_len);
+  std::map<unsigned, std::map<unsigned, std::vector<std::string>>>
+  get_alt_move_conts_map(GameWithAltMoves const &g, unsigned cont_len);
 
   bool from_lines(std::vector<std::string>);
   std::vector<std::string> to_lines();

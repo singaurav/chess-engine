@@ -1,6 +1,8 @@
 #include "utils.hpp"
+#include "adapter.h"
 #include <random>
 #include <set>
+#include <sstream>
 #include <vector>
 
 std::normal_distribution<double>
@@ -73,4 +75,45 @@ std::vector<unsigned>
 Utils::sample_indices(std::uniform_int_distribution<int> distribution,
                       unsigned num_elements, unsigned num_samples) {
   return _sample_indices(distribution, num_elements, num_samples);
+}
+
+std::string Utils::uci_init_moves_cmd(std::vector<std::string> moves) {
+  std::string cmd = "position fen "
+                    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
+                    "moves";
+
+  for (std::string m : moves)
+    cmd += " " + m;
+
+  return cmd;
+}
+
+std::vector<std::string>
+Utils::get_move_cont(std::vector<std::string> init_moves, int count) {
+  std::vector<std::string> cont;
+
+  for (int c = 0; c < count; ++c) {
+    auto init_cont = init_moves;
+    init_cont.insert(init_cont.end(), cont.begin(), cont.end());
+
+    std::vector<std::string> uci_commands{Utils::uci_init_moves_cmd(init_cont)};
+    uci_commands.push_back("go movetime 100");
+
+    auto uci_output_lines = Adapter::run_uci_commands(uci_commands);
+
+    std::string last_line = uci_output_lines.back();
+
+    std::stringstream ss(last_line);
+    std::string token;
+
+    ss >> token;
+    ss >> token;
+
+    if (token == "(none)")
+      return cont;
+    else
+      cont.push_back(token);
+  }
+
+  return cont;
 }
