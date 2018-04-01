@@ -96,16 +96,9 @@ GameWithAltMoves::get_alt_moves_map(GameWithSampledMoves const &g) {
 
   for (unsigned index : g.sampled_moves_indexes) {
 
-    std::vector<std::string> init_moves;
-
-    for (unsigned i = 0; i < index; ++i) {
-      init_moves.push_back(g.moves[i].white_move);
-      init_moves.push_back(g.moves[i].black_move);
-    }
-
-    if (g.result == "0-1") {
-      init_moves.push_back(g.moves[index].white_move);
-    }
+    unsigned game_ply_count = g.result == "1-0" ? index * 2 : index * 2 + 1;
+    std::vector<std::string> init_moves =
+        this->get_firstk_plies(game_ply_count);
 
     std::vector<std::string> uci_commands{
         Utils::uci_init_moves_cmd(init_moves)};
@@ -220,21 +213,9 @@ GameWithMoveConts::get_sampled_move_conts_map(GameWithAltMoves const &g,
 
   for (unsigned index : g.sampled_moves_indexes) {
 
-    std::vector<std::string> init_moves;
-
-    for (unsigned i = 0; i < index; ++i) {
-      init_moves.push_back(g.moves[i].white_move);
-      init_moves.push_back(g.moves[i].black_move);
-    }
-
-    if (g.result == "0-1") {
-      init_moves.push_back(g.moves[index].white_move);
-      init_moves.push_back(g.moves[index].black_move);
-    } else if (g.result == "1-0") {
-      init_moves.push_back(g.moves[index].white_move);
-    } else {
-      assert(false);
-    }
+    unsigned game_ply_count = g.result == "1-0" ? index * 2 + 1 : index * 2 + 2;
+    std::vector<std::string> init_moves =
+        this->get_firstk_plies(game_ply_count);
 
     sampled_move_conts_map.insert(std::pair<unsigned, std::vector<std::string>>(
         index, Utils::get_move_cont(init_moves, cont_len)));
@@ -255,15 +236,10 @@ GameWithMoveConts::get_alt_move_conts_map(GameWithAltMoves const &g,
     std::map<unsigned, std::vector<std::string>> alt_move_conts_map;
 
     for (unsigned alt_index = 0; alt_index < alt_moves_len; ++alt_index) {
-      std::vector<std::string> init_moves;
 
-      for (unsigned i = 0; i < index; ++i) {
-        init_moves.push_back(g.moves[i].white_move);
-        init_moves.push_back(g.moves[i].black_move);
-      }
-
-      if (g.result == "0-1")
-        init_moves.push_back(g.moves[index].white_move);
+      unsigned game_ply_count = g.result == "1-0" ? index * 2 : index * 2 + 1;
+      std::vector<std::string> init_moves =
+          this->get_firstk_plies(game_ply_count);
 
       init_moves.push_back(g.alt_moves_map.at(index)[alt_index]);
 

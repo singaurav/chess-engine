@@ -44,6 +44,22 @@ public:
   // moves played in the game
   std::vector<GameMove> moves;
 
+  std::vector<std::string> get_firstk_plies(unsigned count) {
+    assert(count <= this->ply_count);
+
+    std::vector<std::string> firstk_plies;
+
+    for (unsigned i = 0; i < count / 2; ++i) {
+      firstk_plies.push_back(this->moves[i].white_move);
+      firstk_plies.push_back(this->moves[i].black_move);
+    }
+
+    if (count % 2 == 1)
+      firstk_plies.push_back(this->moves[count / 2].white_move);
+
+    return firstk_plies;
+  }
+
   bool from_lines(std::vector<std::string>);
   std::vector<std::string> to_lines();
 };
