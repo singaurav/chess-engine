@@ -247,9 +247,36 @@ std::map<unsigned, std::map<unsigned, std::vector<std::string>>>
 GameWithMoveConts::get_alt_move_conts_map(GameWithAltMoves const &g,
                                           unsigned cont_len) {
   std::map<unsigned, std::map<unsigned, std::vector<std::string>>>
-      alt_moves_map;
+      alt_moves_conts_map;
 
-  return alt_moves_map;
+  for (unsigned index : g.sampled_moves_indexes) {
+    unsigned alt_moves_len = g.alt_moves_map.at(index).size();
+
+    std::map<unsigned, std::vector<std::string>> alt_move_conts_map;
+
+    for (unsigned alt_index = 0; alt_index < alt_moves_len; ++alt_index) {
+      std::vector<std::string> init_moves;
+
+      for (unsigned i = 0; i < index; ++i) {
+        init_moves.push_back(g.moves[i].white_move);
+        init_moves.push_back(g.moves[i].black_move);
+      }
+
+      if (g.result == "0-1")
+        init_moves.push_back(g.moves[index].white_move);
+
+      init_moves.push_back(g.alt_moves_map.at(index)[alt_index]);
+
+      alt_move_conts_map.insert(std::pair<unsigned, std::vector<std::string>>(
+          alt_index, Utils::get_move_cont(init_moves, cont_len)));
+    }
+
+    alt_moves_conts_map.insert(
+        std::pair<unsigned, std::map<unsigned, std::vector<std::string>>>(
+            index, alt_move_conts_map));
+  }
+
+  return alt_moves_conts_map;
 }
 
 std::vector<std::string> GameWithMoveConts::to_lines() {
@@ -277,11 +304,20 @@ std::vector<std::string> GameWithMoveConts::to_lines() {
 
     ss << std::endl;
 
-    for (std::string move : alt_moves) {
+    unsigned alt_moves_len = this->alt_moves_map.at(index).size();
+
+    for (unsigned alt_index = 0; alt_index < alt_moves_len; ++alt_index) {
       if (this->result == "1-0")
-        ss << std::setw(15) << move << std::endl;
+        ss << std::setw(15) << this->alt_moves_map.at(index)[alt_index];
       else if (this->result == "0-1")
-        ss << std::setw(27) << move << std::endl;
+        ss << std::setw(27) << this->alt_moves_map.at(index)[alt_index];
+
+      ss << std::setw(6) << " -> ";
+
+      for (auto c : this->alt_move_conts_map.at(index).at(alt_index))
+        ss << std::setw(6) << c;
+
+      ss << std::endl;
     }
   }
   stringstream_into_lines(ss, lines);

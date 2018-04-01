@@ -97,7 +97,7 @@ Utils::get_move_cont(std::vector<std::string> init_moves, int count) {
     init_cont.insert(init_cont.end(), cont.begin(), cont.end());
 
     std::vector<std::string> uci_commands{Utils::uci_init_moves_cmd(init_cont)};
-    uci_commands.push_back("go movetime 100");
+    uci_commands.push_back("go movetime 20");
 
     auto uci_output_lines = Adapter::run_uci_commands(uci_commands);
 
