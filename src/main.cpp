@@ -17,6 +17,7 @@ int main(int argc, char *argv[]) {
     GameWithAltMoves game_alt_moves(game_sampled_moves);
     GameWithMoveConts game_move_conts(game_alt_moves, 6);
 
+    put_game<std::ostream>(game_alt_moves, std::cout);
     put_game<std::ostream>(game_move_conts, std::cout);
   }
   return 0;

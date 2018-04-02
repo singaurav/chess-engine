@@ -52,6 +52,33 @@ public:
 
   bool from_lines(std::vector<std::string>);
   std::vector<std::string> to_lines();
+
+  std::string get_sampled_move_str(unsigned index) {
+    std::stringstream ss;
+
+    auto alt_moves = this->alt_moves_map.at(index);
+    ss << std::setw(3) << index + 1 << std::setw(4) << alt_moves.size();
+
+    if (this->result == "1-0")
+      ss << std::setw(12) << this->moves[index].white_move;
+    else if (this->result == "0-1")
+      ss << std::setw(24) << this->moves[index].black_move;
+    else
+      assert(false);
+
+    return ss.str();
+  }
+
+  std::string get_alt_move_str(unsigned index, unsigned alt_index) {
+    std::stringstream ss;
+
+    if (this->result == "1-0")
+      ss << std::setw(15) << this->alt_moves_map.at(index)[alt_index];
+    else if (this->result == "0-1")
+      ss << std::setw(27) << this->alt_moves_map.at(index)[alt_index];
+
+    return ss.str();
+  }
 };
 
 class GameWithMoveConts : public GameWithAltMoves {
@@ -76,6 +103,24 @@ public:
 
   bool from_lines(std::vector<std::string>);
   std::vector<std::string> to_lines();
+
+  std::string get_sampled_move_conts_str(unsigned index) {
+    std::stringstream ss;
+
+    for (auto c : this->sampled_move_conts_map.at(index))
+      ss << std::setw(6) << c;
+
+    return ss.str();
+  }
+
+  std::string get_alt_move_conts_str(unsigned index, unsigned alt_index) {
+    std::stringstream ss;
+
+    for (auto c : this->alt_move_conts_map.at(index).at(alt_index))
+      ss << std::setw(6) << c;
+
+    return ss.str();
+  }
 };
 
 #endif // #ifndef GAME_INFO_CALC_INCLUDED

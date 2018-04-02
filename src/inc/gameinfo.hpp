@@ -1,6 +1,7 @@
 #ifndef GAME_INFO_INCLUDED
 #define GAME_INFO_INCLUDED
 
+#include <assert.h>
 #include <iomanip>
 #include <sstream>
 #include <string>

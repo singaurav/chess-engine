@@ -136,20 +136,12 @@ std::vector<std::string> GameWithAltMoves::to_lines() {
 
   for (unsigned index : this->sampled_moves_indexes) {
     auto alt_moves = this->alt_moves_map.at(index);
-    ss << std::setw(3) << index + 1 << std::setw(4) << alt_moves.size();
+    ss << this->get_sampled_move_str(index) << std::endl;
 
-    if (this->result == "1-0")
-      ss << std::setw(12) << this->moves[index].white_move << std::endl;
-    else if (this->result == "0-1")
-      ss << std::setw(24) << this->moves[index].black_move << std::endl;
-    else
-      assert(false);
+    unsigned alt_moves_len = this->alt_moves_map.at(index).size();
 
-    for (std::string move : alt_moves) {
-      if (this->result == "1-0")
-        ss << std::setw(15) << move << std::endl;
-      else if (this->result == "0-1")
-        ss << std::setw(27) << move << std::endl;
+    for (unsigned alt_index = 0; alt_index < alt_moves_len; ++alt_index) {
+      ss << this->get_alt_move_str(index, alt_index) << std::endl;
     }
   }
   stringstream_into_lines(ss, lines);
@@ -263,37 +255,14 @@ std::vector<std::string> GameWithMoveConts::to_lines() {
      << "       " << this->cont_len << std::endl;
 
   for (unsigned index : this->sampled_moves_indexes) {
-    auto alt_moves = this->alt_moves_map.at(index);
-    ss << std::setw(3) << index + 1 << std::setw(4) << alt_moves.size();
-
-    if (this->result == "1-0")
-      ss << std::setw(12) << this->moves[index].white_move;
-    else if (this->result == "0-1")
-      ss << std::setw(24) << this->moves[index].black_move;
-    else
-      assert(false);
-
-    ss << std::setw(6) << " -> ";
-
-    for (auto c : this->sampled_move_conts_map.at(index))
-      ss << std::setw(6) << c;
-
-    ss << std::endl;
+    ss << this->get_sampled_move_str(index) << std::setw(6) << " -> "
+       << this->get_sampled_move_conts_str(index) << std::endl;
 
     unsigned alt_moves_len = this->alt_moves_map.at(index).size();
 
     for (unsigned alt_index = 0; alt_index < alt_moves_len; ++alt_index) {
-      if (this->result == "1-0")
-        ss << std::setw(15) << this->alt_moves_map.at(index)[alt_index];
-      else if (this->result == "0-1")
-        ss << std::setw(27) << this->alt_moves_map.at(index)[alt_index];
-
-      ss << std::setw(6) << " -> ";
-
-      for (auto c : this->alt_move_conts_map.at(index).at(alt_index))
-        ss << std::setw(6) << c;
-
-      ss << std::endl;
+      ss << this->get_alt_move_str(index, alt_index) << std::setw(6) << " -> "
+         << this->get_alt_move_conts_str(index, alt_index) << std::endl;
     }
   }
   stringstream_into_lines(ss, lines);

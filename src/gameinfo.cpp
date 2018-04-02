@@ -1,6 +1,5 @@
 #include "gameinfo.hpp"
 #include "utils.hpp"
-#include <assert.h>
 
 bool Game::from_lines(const std::vector<std::string> lines) {
   bool valid_game = false;
