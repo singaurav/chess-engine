@@ -1,5 +1,7 @@
 #include "utils.hpp"
 #include "adapter.h"
+#include <algorithm>
+#include <assert.h>
 #include <random>
 #include <set>
 #include <sstream>
