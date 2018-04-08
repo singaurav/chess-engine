@@ -1,5 +1,5 @@
 #include "gameinfo.hpp"
-#include "utils.hpp"
+#include "adapter.h"
 #include <algorithm>
 #include <assert.h>
 #include <iomanip>
@@ -44,6 +44,34 @@ template <> void TrainGame::sample_moves<NORMAL>(unsigned count) {
         winner_moves_indices[indices[i]]);
 }
 
+std::vector<GameFeature>
+get_game_features(std::vector<std::string> init_moves,
+                  std::vector<std::string> feature_names) {
+  std::vector<GameFeature> game_features;
+
+  std::vector<std::string> uci_commands{Utils::uci_init_moves_cmd(init_moves),
+                                        "featextract"};
+  auto uci_output_lines = Adapter::run_uci_commands(uci_commands);
+
+  for (unsigned i = 0; i < uci_output_lines.size(); ++i) {
+    std::stringstream ss(uci_output_lines[i]);
+    std::string token;
+    double white_val, black_val;
+
+    ss >> token >> white_val >> black_val;
+
+    assert(token == feature_names[i]);
+
+    GameFeature gf;
+    gf.white_feature_val = white_val;
+    gf.black_feature_val = black_val;
+
+    game_features.push_back(gf);
+  }
+
+  return game_features;
+}
+
 MoveBranch TrainGame::get_move_branch(unsigned index) {
   MoveBranch mb;
 
@@ -62,6 +90,9 @@ MoveBranch TrainGame::get_move_branch(unsigned index) {
   for (std::string m : extension)
     mb.true_continuation.push_back(m);
 
+  mb.true_continuation_features =
+      get_game_features(init_moves, this->feature_names);
+
   init_moves.pop_back();
 
   auto alt_moves =
@@ -78,6 +109,8 @@ MoveBranch TrainGame::get_move_branch(unsigned index) {
       alt_continuation.push_back(m);
 
     mb.alt_continuations.push_back(alt_continuation);
+    mb.alt_continuations_features.push_back(
+        get_game_features(init_moves, this->feature_names));
 
     init_moves.pop_back();
   }
@@ -193,12 +226,38 @@ std::vector<std::string> TrainGame::to_lines() {
 
     ss << std::endl;
 
-    for (auto v : this->sampled_moves_branches[i].alt_continuations) {
+    for (GameFeature gf :
+         this->sampled_moves_branches[i].true_continuation_features)
+      ss << std::setw(6) << gf.white_feature_val;
+
+    ss << std::endl;
+
+    for (GameFeature gf :
+         this->sampled_moves_branches[i].true_continuation_features)
+      ss << std::setw(6) << gf.black_feature_val;
+
+    ss << std::endl;
+
+    for (unsigned j = 0;
+         j < this->sampled_moves_branches[i].alt_continuations.size(); ++j) {
       ss << (this->sampled_winner_moves_indices[i] % 2 == 0 ? std::setw(15)
                                                             : std::setw(27));
 
-      for (std::string am : v)
+      for (std::string am :
+           this->sampled_moves_branches[i].alt_continuations[j])
         ss << am << "  ";
+
+      ss << std::endl;
+
+      for (GameFeature gf :
+           this->sampled_moves_branches[i].alt_continuations_features[j])
+        ss << std::setw(6) << gf.white_feature_val;
+
+      ss << std::endl;
+
+      for (GameFeature gf :
+           this->sampled_moves_branches[i].alt_continuations_features[j])
+        ss << std::setw(6) << gf.black_feature_val;
 
       ss << std::endl;
     }

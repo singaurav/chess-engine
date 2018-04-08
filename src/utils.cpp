@@ -145,3 +145,22 @@ Utils::get_alt_moves(std::vector<std::string> init_moves, std::string move) {
 
   return alt_moves;
 }
+
+std::vector<std::string> Utils::get_feature_names() {
+  std::vector<std::string> uci_commands{"featextract"};
+
+  auto uci_output_lines = Adapter::run_uci_commands(uci_commands);
+
+  assert(uci_output_lines.size() > 0);
+
+  std::vector<std::string> feature_list;
+
+  for (std::string line : uci_output_lines) {
+    std::stringstream ss(line);
+    std::string token;
+    ss >> token;
+    feature_list.push_back(token);
+  }
+
+  return feature_list;
+}

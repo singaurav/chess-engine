@@ -1,6 +1,7 @@
 #ifndef GAME_INFO_INCLUDED
 #define GAME_INFO_INCLUDED
 
+#include "utils.hpp"
 #include <random>
 #include <vector>
 
@@ -19,9 +20,8 @@ enum CountSampleStrategy {
   PERC
 };
 
-struct GameFeatures {
-  std::vector<std::string> feature_names;
-  std::vector<double> white_features, black_features;
+struct GameFeature {
+  double white_feature_val, black_feature_val;
 };
 
 //
@@ -32,10 +32,10 @@ struct GameFeatures {
 struct MoveBranch {
   std::vector<std::string> init_move_line;
   std::vector<std::string> true_continuation;
-  GameFeatures true_continuation_features;
+  std::vector<GameFeature> true_continuation_features;
 
   std::vector<std::vector<std::string>> alt_continuations;
-  std::vector<std::vector<GameFeatures>> alt_continuations_features;
+  std::vector<std::vector<GameFeature>> alt_continuations_features;
 };
 
 class TrainGame {
@@ -49,9 +49,6 @@ private:
   std::vector<std::string> total_move_line;
   std::vector<unsigned> sampled_winner_moves_indices;
   std::vector<MoveBranch> sampled_moves_branches;
-
-  const unsigned continuation_size = 6;
-  const unsigned movetime = 20;
 
   void reset() {
     total_move_line.clear();
@@ -80,6 +77,10 @@ private:
   template <MoveSampleStrategy Strategy> void sample_moves(unsigned);
 
 public:
+  const unsigned continuation_size = 6;
+  const unsigned movetime = 20;
+  const std::vector<std::string> feature_names = Utils::get_feature_names();
+
   bool from_lines(std::vector<std::string>);
   std::vector<std::string> to_lines();
 };
