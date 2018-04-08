@@ -1,6 +1,7 @@
 #include "gameinfo.hpp"
 #include "utils.hpp"
 #include <algorithm>
+#include <assert.h>
 #include <iomanip>
 #include <sstream>
 
