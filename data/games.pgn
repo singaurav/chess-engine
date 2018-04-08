@@ -1,49 +1,20 @@
-GameId       1
-Result       1-0
-PlyCount       83
-WhiteElo       2632
-BlackElo       2742
+GameId        1
+Result        1-0
+PlyCount        13
+WhiteElo        1000
+BlackElo        1200
 Moves
-  1      d2d4      g8f6 
-  2      c2c4      g7g6 
-  3      b1c3      d7d5 
-  4      c4d5      f6d5 
-  5      e2e4      d5c3 
-  6      b2c3      f8g7 
-  7      g1f3      c7c5 
-  8      a1b1      e8g8 
-  9      f1e2      c5d4 
- 10      c3d4      d8a5 
- 11      d1d2      a5d2 
- 12      c1d2      b7b6 
- 13      e1g1      c8b7
- 14      e2d3      f8d8 
- 15      d2e3      g7d4
- 16      f3d4      e7e5 
- 17      d4b5      d8d3 
- 18      b5c7      b8c6 
- 19      c7a8      b7a8 
- 20      f1d1      d3c3 
- 21      b1c1      c3c1 
- 22      e3c1      g8g7 
- 23      f2f3      g7f6 
- 24      c1a3      c6d4 
- 25      a3b2      d4c6 
- 26      d1d5      f6e6 
- 27      b2a3      f7f5 
- 28      d5d6      e6f7 
- 29      e4f5      g6f5 
- 30      h2h4      a7a5 
- 31      h4h5      b6b5 
- 32      d6d7      f7f6 
- 33      d7h7      b5b4 
- 34      h7h8      b4a3 
- 35      h8g8      f6f7 
- 36      g8a8      c6d4 
- 37      g1f2      f5f4 
- 38      a8a5      d4c6 
- 39      a5a3      c6b4 
- 40      a3a7      f7g8 
- 41      a2a4      b4d3 
- 42      f2g1 
+  1        e2e4
+  2                    e7e5
+  3        b1c3
+  4                    g8f6
+  5        f1c4
+  6                    f6e4
+  7        c4f7
+  8                    e8f7
+  9        c3e4
+ 10                    b8c6
+ 11        d1f3
+ 12                    f7g8
+ 13        e4g5
 ----------------------------------------

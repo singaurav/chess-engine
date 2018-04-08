@@ -19,7 +19,11 @@ public:
   static std::string uci_init_moves_cmd(std::vector<std::string> moves);
 
   static std::vector<std::string>
-  get_move_cont(std::vector<std::string> init_moves, int count);
+  get_move_cont(std::vector<std::string> init_moves, int count,
+                unsigned movetime);
+
+  static std::vector<std::string>
+  get_alt_moves(std::vector<std::string> init_moves, std::string move);
 };
 
 #endif // #ifndef UTILS_INCLUDED

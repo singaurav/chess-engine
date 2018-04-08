@@ -89,7 +89,8 @@ std::string Utils::uci_init_moves_cmd(std::vector<std::string> moves) {
 }
 
 std::vector<std::string>
-Utils::get_move_cont(std::vector<std::string> init_moves, int count) {
+Utils::get_move_cont(std::vector<std::string> init_moves, int count,
+                     unsigned movetime) {
   std::vector<std::string> cont;
 
   for (int c = 0; c < count; ++c) {
@@ -97,7 +98,11 @@ Utils::get_move_cont(std::vector<std::string> init_moves, int count) {
     init_cont.insert(init_cont.end(), cont.begin(), cont.end());
 
     std::vector<std::string> uci_commands{Utils::uci_init_moves_cmd(init_cont)};
-    uci_commands.push_back("go movetime 20");
+
+    std::stringstream go_ss;
+    go_ss << "go movetime" << movetime;
+
+    uci_commands.push_back(go_ss.str());
 
     auto uci_output_lines = Adapter::run_uci_commands(uci_commands);
 
@@ -116,4 +121,25 @@ Utils::get_move_cont(std::vector<std::string> init_moves, int count) {
   }
 
   return cont;
+}
+
+std::vector<std::string>
+Utils::get_alt_moves(std::vector<std::string> init_moves, std::string move) {
+  std::vector<std::string> uci_commands{Utils::uci_init_moves_cmd(init_moves),
+                                        "genmoves"};
+
+  auto uci_output_lines = Adapter::run_uci_commands(uci_commands);
+
+  assert(std::find(uci_output_lines.begin(), uci_output_lines.end(), move) !=
+         uci_output_lines.end());
+
+  std::vector<std::string> alt_moves;
+  for (auto m : uci_output_lines) {
+    assert(m.size() > 0);
+    if (m != move) {
+      alt_moves.push_back(m);
+    }
+  }
+
+  return alt_moves;
 }

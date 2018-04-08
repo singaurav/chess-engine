@@ -4,7 +4,7 @@ include_directories(inc)
 
 add_subdirectory(external/Stockfish)
 
-set(PRE_TRAIN_SRCS gameinfo.cpp gameinfo_calc.cpp utils.cpp)
+set(PRE_TRAIN_SRCS gameinfo.cpp utils.cpp)
 
 add_library(pretrainlib STATIC ${PRE_TRAIN_SRCS})
 

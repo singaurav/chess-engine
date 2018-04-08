@@ -1,74 +1,87 @@
 #ifndef GAME_INFO_INCLUDED
 #define GAME_INFO_INCLUDED
 
-#include <assert.h>
-#include <iomanip>
-#include <sstream>
-#include <string>
+#include <random>
 #include <vector>
 
-class AbstractGame {
-public:
-  // need these two functions to be able to stream games to and from a file
-  virtual bool from_lines(const std::vector<std::string>) = 0;
-  virtual std::vector<std::string> to_lines() = 0;
+enum GameResult { BLACK_WON, WHITE_WON, DRAW };
+
+enum MoveSampleStrategy {
+  // sample at random
+  UNIFORM,
+  // sample according to a normal distribution
+  NORMAL
+};
+enum CountSampleStrategy {
+  // sample exactly a fixed number of moves.
+  EXACTLY_N,
+  // sample a percentage of total number of moves in the game.
+  PERC
 };
 
-struct GameMove {
-  std::string white_move;
-  std::string black_move;
-  GameMove(std::string white_move, std::string black_move) {
-    this->white_move = white_move;
-    this->black_move = black_move;
-  }
-
-  std::string to_string() const {
-    std::stringstream ss;
-    ss << std::setw(12) << this->white_move << std::setw(12)
-       << this->black_move;
-    return ss.str();
-  }
+struct GameFeatures {
+  std::vector<std::string> feature_names;
+  std::vector<double> white_features, black_features;
 };
 
-class Game : public AbstractGame {
-public:
-  // unique id for each game
-  int id;
-  // white won 1-0, black won 0-1 or draw 1/2-1/2
-  std::string result;
-  // total number of half moves in the game
-  int ply_count;
-  // elo of the white player
-  int white_elo;
-  // elo of the black player
-  int black_elo;
-  // moves played in the game
-  std::vector<GameMove> moves;
+//
+// -> -> -> ->
+//       -> ->
+//       -> ->
+//
+struct MoveBranch {
+  std::vector<std::string> init_move_line;
+  std::vector<std::string> true_continuation;
+  GameFeatures true_continuation_features;
 
-  std::vector<std::string> get_firstk_plies(unsigned count) {
-    assert(count <= this->ply_count);
+  std::vector<std::vector<std::string>> alt_continuations;
+  std::vector<std::vector<GameFeatures>> alt_continuations_features;
+};
 
-    std::vector<std::string> firstk_plies;
+class TrainGame {
+private:
+  unsigned id;
+  GameResult result;
+  unsigned ply_count;
+  unsigned white_elo;
+  unsigned black_elo;
 
-    for (unsigned i = 0; i < count / 2; ++i) {
-      firstk_plies.push_back(this->moves[i].white_move);
-      firstk_plies.push_back(this->moves[i].black_move);
+  std::vector<std::string> total_move_line;
+  std::vector<unsigned> sampled_winner_moves_indices;
+  std::vector<MoveBranch> sampled_moves_branches;
+
+  const unsigned continuation_size = 6;
+  const unsigned movetime = 20;
+
+  void reset() {
+    total_move_line.clear();
+    sampled_moves_branches.clear();
+    sampled_winner_moves_indices.clear();
+  }
+
+  std::vector<unsigned> get_winner_moves_indices() {
+    std::vector<unsigned> indices;
+
+    unsigned index = this->result == WHITE_WON ? 0 : 1;
+
+    while (index < this->total_move_line.size()) {
+      indices.push_back(index);
+      index += 2;
     }
 
-    if (count % 2 == 1)
-      firstk_plies.push_back(this->moves[count / 2].white_move);
-
-    return firstk_plies;
+    return indices;
   }
 
+  MoveBranch get_move_branch(unsigned index);
+
+  template <CountSampleStrategy Strategy, typename Limit>
+  unsigned sample_count(Limit);
+
+  template <MoveSampleStrategy Strategy> void sample_moves(unsigned);
+
+public:
   bool from_lines(std::vector<std::string>);
   std::vector<std::string> to_lines();
 };
-
-void move_into_stringstream(const GameMove &move, unsigned index,
-                            std::stringstream &ss);
-
-void stringstream_into_lines(std::stringstream &ss,
-                             std::vector<std::string> &lines);
 
 #endif // #ifndef GAME_INFO_INCLUDED

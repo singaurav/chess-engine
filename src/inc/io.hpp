@@ -8,7 +8,7 @@
 static const std::string GAME_END = "----------------------------------------";
 
 template <typename InputStream>
-bool get_game(Game &game, InputStream &input_stream) {
+bool get_game(TrainGame &game, InputStream &input_stream) {
   std::vector<std::string> lines;
   std::string line;
 
@@ -24,7 +24,7 @@ bool get_game(Game &game, InputStream &input_stream) {
 }
 
 template <typename OutputStream>
-void put_game(Game &game, OutputStream &output_stream) {
+void put_game(TrainGame &game, OutputStream &output_stream) {
   std::vector<std::string> lines = game.to_lines();
 
   for (auto line : lines) {
