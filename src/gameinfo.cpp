@@ -166,7 +166,7 @@ bool TrainGame::from_lines(const std::vector<std::string> lines) {
 
   assert(this->ply_count == this->total_move_line.size());
 
-  this->sample_moves<UNIFORM>(this->sample_count<PERC, double>(40.0));
+  this->sample_moves<UNIFORM>(this->sample_count<PERC, double>(20.0));
 
   for (unsigned index : this->sampled_winner_moves_indices)
     this->sampled_moves_branches.push_back(this->get_move_branch(index));
