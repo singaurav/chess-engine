@@ -24,14 +24,22 @@ bool get_game(TrainGame &game, InputStream &input_stream) {
 }
 
 template <typename OutputStream>
-void put_game(TrainGame &game, OutputStream &output_stream) {
-  std::vector<std::string> lines = game.to_lines();
+void put_game(TrainGame &game, OutputStream &output_stream, std::string type) {
+  std::vector<std::string> lines;
+
+  if (type == "lines")
+    lines = game.to_lines();
+  else if (type == "csv_lines")
+    lines = game.to_csv_lines();
+  else
+    assert(false);
 
   for (auto line : lines) {
     output_stream << line << std::endl;
   }
 
-  output_stream << GAME_END << std::endl;
+  if (type == "lines")
+    output_stream << GAME_END << std::endl;
 }
 
 #endif // #ifndef IO_INCLUDED

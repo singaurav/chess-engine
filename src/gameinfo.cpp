@@ -271,3 +271,35 @@ std::vector<std::string> TrainGame::to_lines() {
 
   return lines;
 }
+
+std::vector<std::string> TrainGame::to_csv_lines() {
+  std::vector<std::string> csv_lines;
+
+  for (unsigned i = 0; i < this->sampled_winner_moves_indices.size(); ++i) {
+    for (unsigned j = 0;
+         j < this->sampled_moves_branches[i].alt_continuations.size(); ++j) {
+      std::stringstream ss_winner, ss_loser;
+
+      for (GameFeature gf :
+           this->sampled_moves_branches[i].true_continuation_features)
+        ss_winner << gf.white_feature_val << ",";
+
+      for (GameFeature gf :
+           this->sampled_moves_branches[i].true_continuation_features)
+        ss_winner << gf.black_feature_val << ",";
+
+      for (GameFeature gf :
+           this->sampled_moves_branches[i].alt_continuations_features[j])
+        ss_loser << gf.white_feature_val << ",";
+
+      for (GameFeature gf :
+           this->sampled_moves_branches[i].alt_continuations_features[j])
+        ss_loser << gf.black_feature_val << ",";
+
+      csv_lines.push_back(ss_winner.str() + ss_loser.str() + "Left");
+      csv_lines.push_back(ss_loser.str() + ss_winner.str() + "Right");
+    }
+  }
+
+  return csv_lines;
+}

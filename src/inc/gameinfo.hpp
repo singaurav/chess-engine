@@ -83,6 +83,7 @@ public:
 
   bool from_lines(std::vector<std::string>);
   std::vector<std::string> to_lines();
+  std::vector<std::string> to_csv_lines();
 };
 
 #endif // #ifndef GAME_INFO_INCLUDED
