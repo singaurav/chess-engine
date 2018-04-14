@@ -2,6 +2,7 @@
 #define IO_INCLUDED
 
 #include "gameinfo.hpp"
+#include <assert.h>
 #include <iostream>
 #include <string>
 
