@@ -1,67 +1,67 @@
+#include "data_io.hpp"
+#include <dlib/dnn.h>
+#include <fstream>
 #include <iostream>
-#include <dlib/mlp.h>
+#include <stdlib.h>
+#include <vector>
 
-using namespace std;
 using namespace dlib;
 
+template <typename net_type, typename sample_type>
+double get_net_accuracy(net_type &net, std::vector<sample_type> &samples,
+                        std::vector<float> &labels) {
+  std::vector<float> predicted_labels = net(samples);
+  int num_right = 0;
+  int num_wrong = 0;
 
-int main()
-{
-    // The mlp takes column vectors as input and gives column vectors as output.  The dlib::matrix
-    // object is used to represent the column vectors. So the first thing we do here is declare
-    // a convenient typedef for the matrix object we will be using.
+  for (size_t i = 0; i < samples.size(); ++i) {
+    if ((predicted_labels[i] > 0 && labels[i] > 0) ||
+        (predicted_labels[i] < 0 && labels[i] < 0))
+      ++num_right;
+    else
+      ++num_wrong;
+  }
 
-    // This typedef declares a matrix with 2 rows and 1 column.  It will be the
-    // object that contains each of our 2 dimensional samples.   (Note that if you wanted
-    // more than 2 features in this vector you can simply change the 2 to something else)
-    typedef matrix<double, 2, 1> sample_type;
+  return num_right * 100.0 / (double)(num_right + num_wrong);
+}
 
+int main(int argc, char **argv) {
+  typedef matrix<float, 81, 1> sample_type;
 
-    // make an instance of a sample matrix so we can use it below
-    sample_type sample;
+  std::vector<sample_type> train_samples, test_samples;
+  std::vector<float> train_labels, test_labels;
 
-    // Create a multi-layer perceptron network.   This network has 2 nodes on the input layer
-    // (which means it takes column vectors of length 2 as input) and 5 nodes in the first
-    // hidden layer.  Note that the other 4 variables in the mlp's constructor are left at
-    // their default values.
-    mlp::kernel_1a_c net(2,5);
+  load_train_test(argv[2], 10, train_samples, train_labels, test_samples,
+                  test_labels);
 
-    // Now let's put some data into our sample and train on it.  We do this
-    // by looping over 41*41 points and labeling them according to their
-    // distance from the origin.
-    for (int i = 0; i < 1000; ++i)
-    {
-        for (int r = -20; r <= 20; ++r)
-        {
-            for (int c = -20; c <= 20; ++c)
-            {
-                sample(0) = r;
-                sample(1) = c;
+  // clang-format off
+  using net_type = loss_binary_log<fc<1,
+                   htan<fc<230,
+                   input<sample_type>>>>>;
 
-                // if this point is less than 10 from the origin
-                if (sqrt((double)r*r + c*c) <= 10)
-                    net.train(sample,1);
-                else
-                    net.train(sample,0);
-            }
-        }
-    }
+  // clang-format on
 
-    // Now we have trained our mlp.  Let's see how well it did.
-    // Note that if you run this program multiple times you will get different results. This
-    // is because the mlp network is randomly initialized.
+  net_type net;
 
-    // each of these statements prints out the output of the network given a particular sample.
+  dnn_trainer<net_type, adam> trainer(net, adam(0.0, 0.9, 0.999));
+  trainer.set_learning_rate(1e-4);
+  trainer.set_learning_rate_shrink_factor(1);
+  trainer.set_mini_batch_size(8);
 
-    sample(0) = 3.123;
-    sample(1) = 4;
-    cout << "This sample should be close to 1 and it is classified as a " << net(sample) << endl;
+  std::cout.precision(2);
 
-    sample(0) = 13.123;
-    sample(1) = 9.3545;
-    cout << "This sample should be close to 0 and it is classified as a " << net(sample) << endl;
+  for (int e = 5; e < 200; e += 5) {
+    trainer.set_max_num_epochs(e);
+    trainer.train(train_samples, train_labels);
+    std::cout << " --- Epochs:" << std::setw(6) << e
+              << "    train acc: " << std::fixed
+              << get_net_accuracy<net_type, sample_type>(net, train_samples,
+                                                         train_labels)
+              << "    test acc: " << std::fixed
+              << get_net_accuracy<net_type, sample_type>(net, test_samples,
+                                                         test_labels)
+              << std::endl;
+  }
 
-    sample(0) = 13.123;
-    sample(1) = 0;
-    cout << "This sample should be close to 0 and it is classified as a " << net(sample) << endl;
+  return 0;
 }
