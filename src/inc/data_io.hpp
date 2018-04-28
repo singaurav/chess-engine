@@ -7,7 +7,7 @@
 using namespace dlib;
 
 template <typename sample_type>
-void load_train_test(const std::string file_name, float test_perc,
+void load_train_test(std::istream &in, float test_perc,
                      std::vector<sample_type> &train_samples,
                      std::vector<float> &train_labels,
                      std::vector<sample_type> &test_samples,
@@ -17,12 +17,10 @@ void load_train_test(const std::string file_name, float test_perc,
   sample_type st;
   unsigned feat_count = st.nr();
 
-  std::ifstream infile(file_name);
-
   std::string line;
-  getline(infile, line);
+  getline(in, line);
 
-  while (getline(infile, line)) {
+  while (getline(in, line)) {
     std::vector<std::string> line_cells;
 
     std::stringstream ss(line);
