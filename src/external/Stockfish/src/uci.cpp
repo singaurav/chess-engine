@@ -149,12 +149,10 @@ namespace {
   void print_features(const Position &pos) {
     auto features = ExtractFeature::extract_features(pos);
 
-    for (auto f : features) {
-      for (auto sub_f : f.second) {
-        sync_cout << std::setw(48) << f.first + "--" + sub_f.first << std::setw(6)
-                  << sub_f.second.first << std::setw(6) << sub_f.second.second
-                  << sync_endl;
-      }
+    for (auto f : FEATURES) {
+      sync_cout << std::setw(48) << f.first + "--" + f.second << std::setw(6)
+                << features[f.first][f.second].first << std::setw(6)
+                << features[f.first][f.second].second << sync_endl;
     }
   }
 
