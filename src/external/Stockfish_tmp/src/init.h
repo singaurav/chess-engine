@@ -1,3 +1,0 @@
-namespace Init {
-void init();
-}
