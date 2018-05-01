@@ -1,0 +1,3 @@
+namespace Init {
+void init();
+}
