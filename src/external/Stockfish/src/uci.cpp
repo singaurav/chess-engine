@@ -147,12 +147,12 @@ namespace {
   }
 
   void print_features(const Position &pos) {
-    auto features = ExtractFeature::extract_features(pos);
+    ValueFeat val_features(ExtractFeature::extract_features(pos));
 
-    for (auto f : FEATURES) {
-      sync_cout << std::setw(48) << f.first + "--" + f.second << std::setw(6)
-                << features[f.first][f.second].first << std::setw(6)
-                << features[f.first][f.second].second << sync_endl;
+    for (unsigned i = 0; i < FEATURE_COUNT; ++i) {
+      sync_cout << std::setw(48)
+                << FEATURE_NAMES[i].first + "--" + FEATURE_NAMES[i].second
+                << std::setw(6) << val_features.features[i] << sync_endl;
     }
   }
 

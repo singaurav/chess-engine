@@ -2,92 +2,10 @@
 #define FEAT_EXTRACT_INCLUDED
 
 #include "position.h"
+#include "types.h"
 #include <map>
 #include <sstream>
 #include <vector>
-
-const std::vector<std::pair<std::string, std::string>> FEATURES = {
-    {"bishop", "minor-behind-pawn"},
-    {"bishop", "pawn-supported-occupied-outpost"},
-    {"bishop", "pawn-supported-reachable-outpost"},
-    {"bishop", "pawn-unsupported-occupied-outpost"},
-    {"bishop", "pawn-unsupported-reachable-outpost"},
-    {"bishop", "pawns-on-same-color-squares"},
-    {"king", "castle-king-side"},
-    {"king", "castle-queen-side"},
-    {"king", "close-enemies-one"},
-    {"king", "close-enemies-two"},
-    {"king", "enemy-other-bishop-check"},
-    {"king", "enemy-other-knight-check"},
-    {"king", "enemy-other-rook-check"},
-    {"king", "enemy-safe-bishop-check"},
-    {"king", "enemy-safe-knight-check"},
-    {"king", "enemy-safe-queen-check"},
-    {"king", "enemy-safe-rook-check"},
-    {"king", "king-adj-zone-attacks-count"},
-    {"king", "king-attackers-count"},
-    {"king", "king-only-defended"},
-    {"king", "min-king-pawn-distance"},
-    {"king", "not-defended-larger-king-ring"},
-    {"king", "pawnless-flank"},
-    {"king", "shelter-rank-us"},
-    {"king", "shelter-storm-edge-distance"},
-    {"king", "storm-rank-them"},
-    {"king", "storm-type-blocked-by-king"},
-    {"king", "storm-type-blocked-by-pawn"},
-    {"king", "storm-type-unblocked"},
-    {"king", "storm-type-unopposed"},
-    {"knight", "minor-behind-pawn"},
-    {"knight", "pawn-supported-occupied-outpost"},
-    {"knight", "pawn-supported-reachable-outpost"},
-    {"knight", "pawn-unsupported-occupied-outpost"},
-    {"knight", "pawn-unsupported-reachable-outpost"},
-    {"material", "bishop"},
-    {"material", "knight"},
-    {"material", "pawn"},
-    {"material", "queen"},
-    {"material", "rook"},
-    {"mobility", "all"},
-    {"mobility", "bishop"},
-    {"mobility", "knight"},
-    {"mobility", "queen"},
-    {"mobility", "rook"},
-    {"passed-pawns", "average-candidate-passers"},
-    {"passed-pawns", "blocksq-our-king-distance"},
-    {"passed-pawns", "blocksq-their-king-distance"},
-    {"passed-pawns", "defended-block-square"},
-    {"passed-pawns", "empty-blocksq"},
-    {"passed-pawns", "friendly-occupied-blocksq"},
-    {"passed-pawns", "fully-defended-path"},
-    {"passed-pawns", "hindered-passed-pawn"},
-    {"passed-pawns", "no-unsafe-blocksq"},
-    {"passed-pawns", "no-unsafe-squares"},
-    {"passed-pawns", "two-blocksq-our-king-distance"},
-    {"queen", "weak"},
-    {"rook", "castle"},
-    {"rook", "rook-on-open-file"},
-    {"rook", "rook-on-pawn"},
-    {"rook", "rook-on-semi-open-file"},
-    {"rook", "trapped"},
-    {"space", "extra-safe-squares"},
-    {"space", "safe-squares"},
-    {"threats", "hanging"},
-    {"threats", "hanging-pawn"},
-    {"threats", "king-threat-by-minor"},
-    {"threats", "king-threat-by-rook"},
-    {"threats", "minor-threat-by-minor"},
-    {"threats", "minor-threat-by-rook"},
-    {"threats", "pawn-push"},
-    {"threats", "pawn-threat-by-minor"},
-    {"threats", "pawn-threat-by-rook"},
-    {"threats", "queen-threat-by-minor"},
-    {"threats", "queen-threat-by-rook"},
-    {"threats", "rook-threat-by-minor"},
-    {"threats", "rook-threat-by-rook"},
-    {"threats", "safe-pawn"},
-    {"threats", "threat-by-king"},
-    {"threats", "threat-by-minor-rank"},
-    {"threats", "threat-by-rook-rank"}};
 
 class Feature {
 public:
@@ -96,8 +14,8 @@ public:
 
 class FeatureSquareList : public Feature {
 private:
-  int square_count[64];
-  int total_count;
+  int16_t square_count[64];
+  int16_t total_count;
 
 public:
   void reset() {
@@ -131,7 +49,7 @@ public:
     total_count += 1;
   }
 
-  void add_count(int count) {
+  void add_count(int16_t count) {
     square_count[0] += count;
     total_count += count;
   }
@@ -192,20 +110,20 @@ merge_white_black_features(std::map<std::string, F> white_feature,
 }
 
 template <class F>
-std::map<std::string, std::pair<double, double>>
+std::map<std::string, std::pair<int16_t, int16_t>>
 feature_value(std::map<std::string, std::pair<F, F>> feature) {
-  std::map<std::string, std::pair<double, double>> feature_value;
+  std::map<std::string, std::pair<int16_t, int16_t>> feature_value;
 
   for (auto sub_f : feature) {
     std::string key = sub_f.first;
-    feature_value[key] = std::pair<double, double>(feature[key].first.value(),
-                                                   feature[key].second.value());
+    feature_value[key] = std::pair<int16_t, int16_t>(
+        feature[key].first.value(), feature[key].second.value());
   }
 
   return feature_value;
 }
 
-std::map<std::string, std::map<std::string, std::pair<double, double>>>
+std::map<std::string, std::map<std::string, std::pair<int16_t, int16_t>>>
 extract_features(const Position &pos);
 
 std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>

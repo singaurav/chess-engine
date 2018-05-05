@@ -1,3 +1,6 @@
+#ifndef DATA_IO_INCLUDED
+#define DATA_IO_INCLUDED
+
 #include <dlib/matrix.h>
 #include <fstream>
 #include <iostream>
@@ -33,18 +36,11 @@ void load_train_test(std::istream &in, float test_perc,
     sample_type sample;
 
     for (unsigned i = 0; i < feat_count; ++i) {
-      unsigned lw, lb, rw, rb;
-      lw = i;
-      lb = feat_count + i;
-      rw = 2 * feat_count + i;
-      rb = 3 * feat_count + i;
-
-      sample(i) = atof(line_cells[lw].c_str()) - atof(line_cells[lb].c_str()) -
-                  atof(line_cells[rw].c_str()) + atof(line_cells[rb].c_str());
+      sample(i) = atof(line_cells[i].c_str());
     }
 
     float label;
-    unsigned c = 4 * feat_count;
+    unsigned c = feat_count;
 
     if (line_cells[c] == "Left")
       label = +1;
@@ -65,3 +61,5 @@ void load_train_test(std::istream &in, float test_perc,
   std::cout << "Training sample size: " << train_samples.size() << std::endl
             << "Test sample size: " << test_samples.size() << std::endl;
 }
+
+#endif // #ifndef DATA_IO_INCLUDED

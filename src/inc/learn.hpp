@@ -1,3 +1,5 @@
+#ifndef LEARN_INCLUDED
+#define LEARN_INCLUDED
 
 #include "data_io.hpp"
 #include <dlib/dnn.h>
@@ -51,7 +53,7 @@ void train(std::istream &in, std::ostream &out) {
 
   std::cout.precision(2);
 
-  for (int e = 5; e < 200; e += 5) {
+  for (int e = 5; e < 300; e += 5) {
     trainer.set_max_num_epochs(e);
     trainer.train(train_samples, train_labels);
     std::cout << " --- Epochs:" << std::setw(6) << e
@@ -70,3 +72,5 @@ void train(std::istream &in, std::ostream &out) {
 
   serialize(net, out);
 }
+
+#endif // #ifndef LEARN_INCLUDED

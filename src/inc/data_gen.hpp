@@ -1,3 +1,6 @@
+#ifndef DATA_GEN_INCLUDED
+#define DATA_GEN_INCLUDED
+
 #include "adapter.h"
 #include "gameinfo.hpp"
 #include "io.hpp"
@@ -8,11 +11,8 @@ void generate(std::istream &in, std::ostream &out) {
   TrainGame game;
   auto feature_names = game.feature_names;
 
-  for (std::string prefix : std::vector<std::string>{
-           "LeftWhite", "LeftBlack", "RightWhite", "RightBlack"}) {
-    for (std::string fn : feature_names) {
-      out << prefix + "---" + fn + ",";
-    }
+  for (std::string fn : feature_names) {
+    out << fn + ",";
   }
 
   out << "Winner" << std::endl;
@@ -23,3 +23,5 @@ void generate(std::istream &in, std::ostream &out) {
     std::cout << " --- processed game: " << ++count << std::endl;
   }
 }
+
+#endif // #ifndef DATA_GEN_INCLUDED

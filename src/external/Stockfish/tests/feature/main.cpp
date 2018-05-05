@@ -21,14 +21,13 @@ struct TestCase {
   std::string fen;
   Feature *white_sub_feature;
   Feature *black_sub_feature;
-  double white_val;
-  double black_val;
+  int16_t white_val;
+  int16_t black_val;
 };
 
 static bool INIT_RUN = false;
 
-template <class F>
-void run_test_case(TestCase t) {
+template <class F> void run_test_case(TestCase t) {
   Position pos;
 
   if (!INIT_RUN) {

@@ -3,9 +3,9 @@
 #include "types.h"
 #include <iostream>
 
-std::map<std::string, std::map<std::string, std::pair<double, double>>>
+std::map<std::string, std::map<std::string, std::pair<int16_t, int16_t>>>
 ExtractFeature::extract_features(const Position &pos) {
-  std::map<std::string, std::map<std::string, std::pair<double, double>>>
+  std::map<std::string, std::map<std::string, std::pair<int16_t, int16_t>>>
       features;
 
   features["material"] = ExtractFeature::feature_value<FeatureSquareList>(

@@ -56,15 +56,14 @@ get_game_features(std::vector<std::string> init_moves,
   for (unsigned i = 0; i < uci_output_lines.size(); ++i) {
     std::stringstream ss(uci_output_lines[i]);
     std::string token;
-    double white_val, black_val;
+    int16_t val;
 
-    ss >> token >> white_val >> black_val;
+    ss >> token >> val;
 
     assert(token == feature_names[i]);
 
     GameFeature gf;
-    gf.white_feature_val = white_val;
-    gf.black_feature_val = black_val;
+    gf.feature_val = val;
 
     game_features.push_back(gf);
   }
@@ -228,13 +227,7 @@ std::vector<std::string> TrainGame::to_lines() {
 
     for (GameFeature gf :
          this->sampled_moves_branches[i].true_continuation_features)
-      ss << std::setw(6) << gf.white_feature_val;
-
-    ss << std::endl;
-
-    for (GameFeature gf :
-         this->sampled_moves_branches[i].true_continuation_features)
-      ss << std::setw(6) << gf.black_feature_val;
+      ss << std::setw(6) << gf.feature_val;
 
     ss << std::endl;
 
@@ -251,13 +244,7 @@ std::vector<std::string> TrainGame::to_lines() {
 
       for (GameFeature gf :
            this->sampled_moves_branches[i].alt_continuations_features[j])
-        ss << std::setw(6) << gf.white_feature_val;
-
-      ss << std::endl;
-
-      for (GameFeature gf :
-           this->sampled_moves_branches[i].alt_continuations_features[j])
-        ss << std::setw(6) << gf.black_feature_val;
+        ss << std::setw(6) << gf.feature_val;
 
       ss << std::endl;
     }
@@ -278,26 +265,24 @@ std::vector<std::string> TrainGame::to_csv_lines() {
   for (unsigned i = 0; i < this->sampled_winner_moves_indices.size(); ++i) {
     for (unsigned j = 0;
          j < this->sampled_moves_branches[i].alt_continuations.size(); ++j) {
-      std::stringstream ss_winner, ss_loser;
+      std::stringstream ss_left, ss_right;
 
-      for (GameFeature gf :
-           this->sampled_moves_branches[i].true_continuation_features)
-        ss_winner << gf.white_feature_val << ",";
+      for (int f = 0;
+           f <
+           this->sampled_moves_branches[i].true_continuation_features.size();
+           ++f) {
+        int16_t left = this->sampled_moves_branches[i]
+                           .true_continuation_features[f]
+                           .feature_val -
+                       this->sampled_moves_branches[i]
+                           .alt_continuations_features[j][f]
+                           .feature_val;
+        ss_left << left << ',';
+        ss_right << -left << ',';
+      }
 
-      for (GameFeature gf :
-           this->sampled_moves_branches[i].true_continuation_features)
-        ss_winner << gf.black_feature_val << ",";
-
-      for (GameFeature gf :
-           this->sampled_moves_branches[i].alt_continuations_features[j])
-        ss_loser << gf.white_feature_val << ",";
-
-      for (GameFeature gf :
-           this->sampled_moves_branches[i].alt_continuations_features[j])
-        ss_loser << gf.black_feature_val << ",";
-
-      csv_lines.push_back(ss_winner.str() + ss_loser.str() + "Left");
-      csv_lines.push_back(ss_loser.str() + ss_winner.str() + "Right");
+      csv_lines.push_back(ss_left.str() + "Left");
+      csv_lines.push_back(ss_right.str() + "Right");
     }
   }
 

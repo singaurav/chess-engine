@@ -44,6 +44,9 @@
 #include <cstdint>
 #include <cstdlib>
 
+#include <string>
+#include <map>
+
 #if defined(_MSC_VER)
 // Disable some silly and noisy warning from MSVC compiler
 #pragma warning(disable: 4127) // Conditional expression is constant
@@ -190,6 +193,105 @@ enum Value : int {
   QueenValueMg  = 2526,  QueenValueEg  = 2646,
 
   MidgameLimit  = 15258, EndgameLimit  = 3915
+};
+
+const unsigned FEATURE_COUNT = 81;
+
+const std::pair<std::string, std::string> FEATURE_NAMES[FEATURE_COUNT] = {
+    {"bishop", "minor-behind-pawn"},
+    {"bishop", "pawn-supported-occupied-outpost"},
+    {"bishop", "pawn-supported-reachable-outpost"},
+    {"bishop", "pawn-unsupported-occupied-outpost"},
+    {"bishop", "pawn-unsupported-reachable-outpost"},
+    {"bishop", "pawns-on-same-color-squares"},
+    {"king", "castle-king-side"},
+    {"king", "castle-queen-side"},
+    {"king", "close-enemies-one"},
+    {"king", "close-enemies-two"},
+    {"king", "enemy-other-bishop-check"},
+    {"king", "enemy-other-knight-check"},
+    {"king", "enemy-other-rook-check"},
+    {"king", "enemy-safe-bishop-check"},
+    {"king", "enemy-safe-knight-check"},
+    {"king", "enemy-safe-queen-check"},
+    {"king", "enemy-safe-rook-check"},
+    {"king", "king-adj-zone-attacks-count"},
+    {"king", "king-attackers-count"},
+    {"king", "king-only-defended"},
+    {"king", "min-king-pawn-distance"},
+    {"king", "not-defended-larger-king-ring"},
+    {"king", "pawnless-flank"},
+    {"king", "shelter-rank-us"},
+    {"king", "shelter-storm-edge-distance"},
+    {"king", "storm-rank-them"},
+    {"king", "storm-type-blocked-by-king"},
+    {"king", "storm-type-blocked-by-pawn"},
+    {"king", "storm-type-unblocked"},
+    {"king", "storm-type-unopposed"},
+    {"knight", "minor-behind-pawn"},
+    {"knight", "pawn-supported-occupied-outpost"},
+    {"knight", "pawn-supported-reachable-outpost"},
+    {"knight", "pawn-unsupported-occupied-outpost"},
+    {"knight", "pawn-unsupported-reachable-outpost"},
+    {"material", "bishop"},
+    {"material", "knight"},
+    {"material", "pawn"},
+    {"material", "queen"},
+    {"material", "rook"},
+    {"mobility", "all"},
+    {"mobility", "bishop"},
+    {"mobility", "knight"},
+    {"mobility", "queen"},
+    {"mobility", "rook"},
+    {"passed-pawns", "average-candidate-passers"},
+    {"passed-pawns", "blocksq-our-king-distance"},
+    {"passed-pawns", "blocksq-their-king-distance"},
+    {"passed-pawns", "defended-block-square"},
+    {"passed-pawns", "empty-blocksq"},
+    {"passed-pawns", "friendly-occupied-blocksq"},
+    {"passed-pawns", "fully-defended-path"},
+    {"passed-pawns", "hindered-passed-pawn"},
+    {"passed-pawns", "no-unsafe-blocksq"},
+    {"passed-pawns", "no-unsafe-squares"},
+    {"passed-pawns", "two-blocksq-our-king-distance"},
+    {"queen", "weak"},
+    {"rook", "castle"},
+    {"rook", "rook-on-open-file"},
+    {"rook", "rook-on-pawn"},
+    {"rook", "rook-on-semi-open-file"},
+    {"rook", "trapped"},
+    {"space", "extra-safe-squares"},
+    {"space", "safe-squares"},
+    {"threats", "hanging"},
+    {"threats", "hanging-pawn"},
+    {"threats", "king-threat-by-minor"},
+    {"threats", "king-threat-by-rook"},
+    {"threats", "minor-threat-by-minor"},
+    {"threats", "minor-threat-by-rook"},
+    {"threats", "pawn-push"},
+    {"threats", "pawn-threat-by-minor"},
+    {"threats", "pawn-threat-by-rook"},
+    {"threats", "queen-threat-by-minor"},
+    {"threats", "queen-threat-by-rook"},
+    {"threats", "rook-threat-by-minor"},
+    {"threats", "rook-threat-by-rook"},
+    {"threats", "safe-pawn"},
+    {"threats", "threat-by-king"},
+    {"threats", "threat-by-minor-rank"},
+    {"threats", "threat-by-rook-rank"}};
+
+struct ValueFeat {
+  int16_t features[FEATURE_COUNT];
+
+  ValueFeat(
+      std::map<std::string, std::map<std::string, std::pair<int16_t, int16_t>>>
+          raw_features) {
+    for (unsigned i = 0; i < FEATURE_COUNT; ++i) {
+      features[i] =
+          raw_features[FEATURE_NAMES[i].first][FEATURE_NAMES[i].second].first -
+          raw_features[FEATURE_NAMES[i].first][FEATURE_NAMES[i].second].second;
+    }
+  }
 };
 
 enum PieceType {

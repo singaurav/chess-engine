@@ -21,7 +21,7 @@ enum CountSampleStrategy {
 };
 
 struct GameFeature {
-  double white_feature_val, black_feature_val;
+  int16_t feature_val;
 };
 
 //
