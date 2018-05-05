@@ -77,7 +77,7 @@ private:
   template <MoveSampleStrategy Strategy> void sample_moves(unsigned);
 
 public:
-  const unsigned continuation_size = 6;
+  const unsigned continuation_size = 8;
   const unsigned movetime = 20;
   const std::vector<std::string> feature_names = Utils::get_feature_names();
 

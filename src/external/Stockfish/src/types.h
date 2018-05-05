@@ -282,6 +282,16 @@ const std::pair<std::string, std::string> FEATURE_NAMES[FEATURE_COUNT] = {
 
 struct ValueFeat {
   int16_t features[FEATURE_COUNT];
+  bool pos_inf = false;
+  bool neg_inf = false;
+  int mate_depth = 1000000;
+
+  bool found_mate(int depth) {
+    if (mate_depth <= depth)
+      return true;
+
+    return false;
+  }
 
   ValueFeat(
       std::map<std::string, std::map<std::string, std::pair<int16_t, int16_t>>>
@@ -292,7 +302,75 @@ struct ValueFeat {
           raw_features[FEATURE_NAMES[i].first][FEATURE_NAMES[i].second].second;
     }
   }
+
+  ValueFeat() {
+    
+  }
+
+  ValueFeat(std::string s) {
+    if (s == "+ve infinity") {
+      pos_inf = true;
+      neg_inf = false;
+    } else if (s == "-ve infinity") {
+      pos_inf = false;
+      neg_inf = true;
+    } else {
+      assert(false);
+    }
+  }
+
+  ValueFeat operator-(const ValueFeat& x) const {
+    ValueFeat minus_x;
+
+    if (x.pos_inf || x.neg_inf) {
+      minus_x.pos_inf = x.neg_inf;
+      minus_x.neg_inf = x.pos_inf;
+
+      return minus_x;
+    }
+
+    for (unsigned i = 0; i < FEATURE_COUNT; ++i) {
+      minus_x.features[i] = -x.features[i];
+    }
+
+    return minus_x;
+  }
+
+  bool operator>(const ValueFeat& x) const {
+    if (x.neg_inf) {
+      return true;
+    }
+
+    return true;
+  }
+
+  bool operator<(const ValueFeat& x) const {
+    if (x.pos_inf) {
+      return true;
+    }
+
+    return true;
+  }
+
+  bool operator==(const ValueFeat& x) const {
+    for (unsigned i = 0; i < FEATURE_COUNT; ++i)
+      if (features[i] != x.features[i])
+        return false;
+
+    return true;
+  }
+
+  bool operator!=(const ValueFeat& x) const {
+    for (unsigned i = 0; i < FEATURE_COUNT; ++i)
+      if (features[i] != x.features[i])
+        return true;
+
+    return false;
+  }
 };
+
+const ValueFeat VALUE_FEAT_POS_INF("+ve infinity");
+const ValueFeat VALUE_FEAT_NEG_INF("-ve infinity");
 
 enum PieceType {
   NO_PIECE_TYPE, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
