@@ -304,7 +304,8 @@ struct ValueFeat {
   }
 
   ValueFeat() {
-
+    for (unsigned i = 0; i < FEATURE_COUNT; ++i)
+      features[i] = 0;
   }
 
   ValueFeat(std::string s) {

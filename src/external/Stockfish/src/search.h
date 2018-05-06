@@ -96,7 +96,7 @@ extern LimitsType Limits;
 
 void init();
 void clear();
-template<bool Root = true> uint64_t perft(Position& pos, Depth depth);
+template<bool Root = true> uint64_t perft(Position& pos, Depth depth, std::string mode);
 
 } // namespace Search
 

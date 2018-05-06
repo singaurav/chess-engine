@@ -26,6 +26,7 @@
 #include <sstream>
 
 #include "evaluate.h"
+#include "featextract.h"
 #include "misc.h"
 #include "movegen.h"
 #include "movepick.h"
@@ -209,7 +210,7 @@ void Search::clear() {
 /// Search::perft() is our utility to verify move generation. All the leaf nodes
 /// up to the given depth are generated and counted, and the sum is returned.
 template<bool Root>
-uint64_t Search::perft(Position& pos, Depth depth) {
+uint64_t Search::perft(Position& pos, Depth depth, std::string mode) {
 
   StateInfo st;
   uint64_t cnt, nodes = 0;
@@ -222,7 +223,18 @@ uint64_t Search::perft(Position& pos, Depth depth) {
       else
       {
           pos.do_move(m, st);
-          cnt = leaf ? MoveList<LEGAL>(pos).size() : perft<false>(pos, depth - ONE_PLY);
+          cnt = leaf ? MoveList<LEGAL>(pos).size() : perft<false>(pos, depth - ONE_PLY, mode);
+
+          if (leaf) {
+            if (mode == "eval") {
+              Eval::evaluate(pos);
+            } else if (mode == "comp") {
+              ExtractFeature::extract_features(pos);
+              // ValueFeat left, right;
+              // left > right;
+            }
+          }
+
           nodes += cnt;
           pos.undo_move(m);
       }
@@ -232,7 +244,7 @@ uint64_t Search::perft(Position& pos, Depth depth) {
   return nodes;
 }
 
-template uint64_t Search::perft<true>(Position&, Depth);
+template uint64_t Search::perft<true>(Position&, Depth, std::string);
 
 
 /// MainThread::search() is called by the main thread when the program receives

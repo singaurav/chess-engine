@@ -36,7 +36,7 @@
 
 using namespace std;
 
-extern void benchmark(const Position& pos, istream& is);
+extern void benchmark(const Position& pos, istream& is, string mode);
 
 // FEN string of the initial position, normal chess
 const char* StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -205,19 +205,20 @@ void UCI::run_command(std::string token, istringstream& is, Position& pos) {
 
   // Additional custom non-UCI commands, useful for debugging
   else if (token == "flip")       pos.flip();
-  else if (token == "bench")      benchmark(pos, is);
+  else if (token == "bench")      benchmark(pos, is, "");
   else if (token == "d")          sync_cout << pos << sync_endl;
   else if (token == "eval")       sync_cout << Eval::trace(pos) << sync_endl;
   else if (token == "perft")
   {
       int depth;
+      std::string mode;
       stringstream ss;
 
-      is >> depth;
+      is >> depth >> mode;
       ss << Options["Hash"]    << " "
          << Options["Threads"] << " " << depth << " current perft";
 
-      benchmark(pos, ss);
+      benchmark(pos, ss, mode);
   }
   else
       sync_cout << "Unknown token: " << token << sync_endl;

@@ -96,7 +96,7 @@ const vector<string> Defaults = {
 /// format (defaults are the positions defined above) and the type of the
 /// limit value: depth (default), time in millisecs or number of nodes.
 
-void benchmark(const Position& current, istream& is) {
+void benchmark(const Position& current, istream& is, string mode) {
 
   string token;
   vector<string> fens;
@@ -161,7 +161,7 @@ void benchmark(const Position& current, istream& is) {
       cerr << "\nPosition: " << i + 1 << '/' << fens.size() << endl;
 
       if (limitType == "perft")
-          nodes += Search::perft(pos, limits.depth * ONE_PLY);
+          nodes += Search::perft(pos, limits.depth * ONE_PLY, mode);
 
       else
       {
