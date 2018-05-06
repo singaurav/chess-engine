@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.8)
 add_subdirectory(syzygy)
+add_subdirectory(external/dlib)
 
 set(STOCKFISH_SRCS
     adapter.cpp
@@ -15,6 +16,7 @@ set(STOCKFISH_SRCS
     movegen.cpp
     movepick.cpp
     pawns.cpp
+    poscomp.cpp
     position.cpp
     psqt.cpp
     search.cpp
@@ -29,4 +31,5 @@ add_library(stockfish-static STATIC ${STOCKFISH_SRCS})
 
 add_executable(stockfish ${STOCKFISH_SRCS} main.cpp)
 
-target_link_libraries(stockfish syzygy-static)
+target_link_libraries(stockfish syzygy-static dlib::dlib)
+target_link_libraries(stockfish-static dlib::dlib)

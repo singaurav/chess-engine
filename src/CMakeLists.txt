@@ -3,7 +3,6 @@ include_directories(external/Stockfish/src/syzygy)
 include_directories(inc)
 
 add_subdirectory(external/Stockfish)
-add_subdirectory(external/dlib)
 
 set(PRE_TRAIN_SRCS gameinfo.cpp utils.cpp)
 

@@ -2,6 +2,7 @@
 #define LEARN_INCLUDED
 
 #include "data_io.hpp"
+#include "poscomp.h"
 #include <dlib/dnn.h>
 #include <fstream>
 #include <iostream>
@@ -29,20 +30,11 @@ double get_net_accuracy(net_type &net, std::vector<sample_type> &samples,
 }
 
 void train(std::istream &in, std::ostream &out) {
-  typedef matrix<float, 81, 1> sample_type;
-
   std::vector<sample_type> train_samples, test_samples;
   std::vector<float> train_labels, test_labels;
 
   load_train_test(in, 10, train_samples, train_labels, test_samples,
                   test_labels);
-
-  // clang-format off
-  using net_type = loss_binary_log<fc<1,
-                   htan<fc<230,
-                   input<sample_type>>>>>;
-
-  // clang-format on
 
   net_type net;
 

@@ -31,7 +31,7 @@ template <> void TrainGame::sample_moves<UNIFORM>(unsigned count) {
         winner_moves_indices[indices[i]]);
 }
 
-template <> void TrainGame::sample_moves<NORMAL>(unsigned count) {
+template <> void TrainGame::sample_moves<NORM>(unsigned count) {
   auto winner_moves_indices = get_winner_moves_indices();
 
   std::normal_distribution<double> d =

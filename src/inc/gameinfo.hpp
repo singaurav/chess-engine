@@ -11,7 +11,7 @@ enum MoveSampleStrategy {
   // sample at random
   UNIFORM,
   // sample according to a normal distribution
-  NORMAL
+  NORM
 };
 enum CountSampleStrategy {
   // sample exactly a fixed number of moves.

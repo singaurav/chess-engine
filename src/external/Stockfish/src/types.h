@@ -304,7 +304,7 @@ struct ValueFeat {
   }
 
   ValueFeat() {
-    
+
   }
 
   ValueFeat(std::string s) {
@@ -336,21 +336,8 @@ struct ValueFeat {
     return minus_x;
   }
 
-  bool operator>(const ValueFeat& x) const {
-    if (x.neg_inf) {
-      return true;
-    }
-
-    return true;
-  }
-
-  bool operator<(const ValueFeat& x) const {
-    if (x.pos_inf) {
-      return true;
-    }
-
-    return true;
-  }
+  bool operator>(const ValueFeat& x) const;
+  bool operator<(const ValueFeat& x) const;
 
   bool operator==(const ValueFeat& x) const {
     for (unsigned i = 0; i < FEATURE_COUNT; ++i)
