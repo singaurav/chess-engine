@@ -228,9 +228,9 @@ uint64_t Search::perft(Position& pos, Depth depth, std::string mode) {
             if (mode == "eval") {
               Eval::evaluate(pos);
             } else if (mode == "comp") {
-              // ExtractFeature::extract_features(pos);
-              // ValueFeat left, right;
-              // left > right;
+              CompFeat left = Eval::evaluate_comp_features(pos);
+              CompFeat right;
+              left > right;
             }
           }
 

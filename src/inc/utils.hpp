@@ -24,8 +24,6 @@ public:
 
   static std::vector<std::string>
   get_alt_moves(std::vector<std::string> init_moves, std::string move);
-
-  static std::vector<std::string> get_feature_names();
 };
 
 #endif // #ifndef UTILS_INCLUDED

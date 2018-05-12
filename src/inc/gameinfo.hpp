@@ -21,7 +21,7 @@ enum CountSampleStrategy {
 };
 
 struct GameFeature {
-  int16_t feature_val;
+  int feature_val;
 };
 
 //
@@ -79,7 +79,6 @@ private:
 public:
   const unsigned continuation_size = 8;
   const unsigned movetime = 20;
-  const std::vector<std::string> feature_names = Utils::get_feature_names();
 
   bool from_lines(std::vector<std::string>);
   std::vector<std::string> to_lines();

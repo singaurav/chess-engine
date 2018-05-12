@@ -26,4 +26,5 @@ script:
   - cd chess-engine-build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
   - make
+  - src/external/Stockfish/tests/feature/testfeat
   - test/runtests

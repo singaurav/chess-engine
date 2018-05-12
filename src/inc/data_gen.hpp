@@ -9,13 +9,6 @@
 
 void generate(std::istream &in, std::ostream &out) {
   TrainGame game;
-  auto feature_names = game.feature_names;
-
-  for (std::string fn : feature_names) {
-    out << fn + ",";
-  }
-
-  out << "Winner" << std::endl;
 
   unsigned count = 0;
   while (get_game(game, in)) {

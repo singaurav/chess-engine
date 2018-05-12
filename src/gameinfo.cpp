@@ -45,8 +45,7 @@ template <> void TrainGame::sample_moves<NORM>(unsigned count) {
 }
 
 std::vector<GameFeature>
-get_game_features(std::vector<std::string> init_moves,
-                  std::vector<std::string> feature_names) {
+get_game_features(std::vector<std::string> init_moves) {
   std::vector<GameFeature> game_features;
 
   std::vector<std::string> uci_commands{Utils::uci_init_moves_cmd(init_moves),
@@ -55,12 +54,9 @@ get_game_features(std::vector<std::string> init_moves,
 
   for (unsigned i = 0; i < uci_output_lines.size(); ++i) {
     std::stringstream ss(uci_output_lines[i]);
-    std::string token;
-    int16_t val;
+    int val;
 
-    ss >> token >> val;
-
-    assert(token == feature_names[i]);
+    ss >> val;
 
     GameFeature gf;
     gf.feature_val = val;
@@ -90,7 +86,7 @@ MoveBranch TrainGame::get_move_branch(unsigned index) {
     mb.true_continuation.push_back(m);
 
   mb.true_continuation_features =
-      get_game_features(init_moves, this->feature_names);
+      get_game_features(init_moves);
 
   init_moves.pop_back();
 
@@ -109,7 +105,7 @@ MoveBranch TrainGame::get_move_branch(unsigned index) {
 
     mb.alt_continuations.push_back(alt_continuation);
     mb.alt_continuations_features.push_back(
-        get_game_features(init_moves, this->feature_names));
+        get_game_features(init_moves));
 
     init_moves.pop_back();
   }

@@ -21,7 +21,6 @@ void load_train_test(std::istream &in, float test_perc,
   unsigned feat_count = st.nr();
 
   std::string line;
-  getline(in, line);
 
   while (getline(in, line)) {
     std::vector<std::string> line_cells;
