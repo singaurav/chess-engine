@@ -195,6 +195,7 @@ enum Value : int {
   MidgameLimit  = 15258, EndgameLimit  = 3915
 };
 
+
 enum FeatureName : int {
   BISHOP__MINOR_BEHIND_PAWN = 0,
   BISHOP__PAWN_SUPPORTED_OCCUPIED_OUTPOST,

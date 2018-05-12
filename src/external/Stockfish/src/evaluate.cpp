@@ -471,7 +471,7 @@ namespace {
               if (Pt == BISHOP)
                 features.add_square(BISHOP__PAWN_UNSUPPORTED_OCCUPIED_OUTPOST, s);
               else
-                features.add_square(KNIGHT__PAWN_UNSUPPORTED_REACHABLE_OUTPOST, s);
+                features.add_square(KNIGHT__PAWN_UNSUPPORTED_OCCUPIED_OUTPOST, s);
           }
       }
       else
@@ -797,7 +797,7 @@ namespace {
     b = pos.attacks_from<KNIGHT>(ksq) & attackedBy[Them][KNIGHT];
 
     features.add_bitboard(KING__ENEMY_SAFE_KNIGHT_CHECK, b & safe);
-    features.add_bitboard(KING__ENEMY_OTHER_KNIGHT_CHECK, b & safe);
+    features.add_bitboard(KING__ENEMY_OTHER_KNIGHT_CHECK, b & other);
 
     // THIS CODE DERIVES FROM A LATER STOCKFISH VERSION
     Bitboard kf = KingFlank[file_of(ksq)];
@@ -1437,8 +1437,7 @@ namespace {
 
     // Main evaluation begins here
 
-    initialize<WHITE>(force_eval);
-    initialize<BLACK>(force_eval);
+    value(force_eval);
 
     evaluate_feat_material<WHITE>(white_features);
     evaluate_feat_material<BLACK>(black_features);
@@ -1458,27 +1457,26 @@ namespace {
     evaluate_feat_space<WHITE>(white_features);
     evaluate_feat_space<BLACK>(black_features);
 
-    //
-    // evaluate_feat_king<WHITE>(white_features);
-    // evaluate_feat_king<BLACK>(black_features);
-    //
-    // evaluate_feat_threats<WHITE>(white_features);
-    // evaluate_feat_threats<BLACK>(black_features);
-    //
-    // evaluate_feat_passed_pawns<WHITE>(white_features);
-    // evaluate_feat_passed_pawns<BLACK>(black_features);
-    //
-    // evaluate_feat_mobility<WHITE, ALL_PIECES>(white_features);
-    // evaluate_feat_mobility<WHITE, BISHOP>(white_features);
-    // evaluate_feat_mobility<WHITE, KNIGHT>(white_features);
-    // evaluate_feat_mobility<WHITE, QUEEN>(white_features);
-    // evaluate_feat_mobility<WHITE, ROOK>(white_features);
-    //
-    // evaluate_feat_mobility<BLACK, ALL_PIECES>(black_features);
-    // evaluate_feat_mobility<BLACK, BISHOP>(black_features);
-    // evaluate_feat_mobility<BLACK, KNIGHT>(black_features);
-    // evaluate_feat_mobility<BLACK, QUEEN>(black_features);
-    // evaluate_feat_mobility<BLACK, ROOK>(black_features);
+    evaluate_feat_king<WHITE>(white_features);
+    evaluate_feat_king<BLACK>(black_features);
+
+    evaluate_feat_threats<WHITE>(white_features);
+    evaluate_feat_threats<BLACK>(black_features);
+
+    evaluate_feat_passed_pawns<WHITE>(white_features);
+    evaluate_feat_passed_pawns<BLACK>(black_features);
+
+    evaluate_feat_mobility<WHITE, ALL_PIECES>(white_features);
+    evaluate_feat_mobility<WHITE, BISHOP>(white_features);
+    evaluate_feat_mobility<WHITE, KNIGHT>(white_features);
+    evaluate_feat_mobility<WHITE, QUEEN>(white_features);
+    evaluate_feat_mobility<WHITE, ROOK>(white_features);
+
+    evaluate_feat_mobility<BLACK, ALL_PIECES>(black_features);
+    evaluate_feat_mobility<BLACK, BISHOP>(black_features);
+    evaluate_feat_mobility<BLACK, KNIGHT>(black_features);
+    evaluate_feat_mobility<BLACK, QUEEN>(black_features);
+    evaluate_feat_mobility<BLACK, ROOK>(black_features);
   }
 } // namespace
 
@@ -1494,13 +1492,13 @@ Value Eval::evaluate(const Position& pos)
 void Eval::evaluate_features(const Position& pos, ValueFeat& white_features,
                              ValueFeat& black_features)
 {
-  Evaluation<>(pos).value_feat(white_features, black_features, false);
+  Evaluation<>(pos).value_feat(white_features, black_features, true);
 }
 
 CompFeat Eval::evaluate_comp_features(const Position& pos)
 {
   ValueFeat white_features, black_features;
-  Evaluation<>(pos).value_feat(white_features, black_features, false);
+  Evaluation<>(pos).value_feat(white_features, black_features, true);
 
   return CompFeat(white_features, black_features);
 }
