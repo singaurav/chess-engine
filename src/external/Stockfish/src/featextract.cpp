@@ -1,33 +1,39 @@
-#include "featextract.h"
 #include "position.h"
 #include "types.h"
 #include <iostream>
 
-std::map<std::string, std::map<std::string, std::pair<int16_t, int16_t>>>
-ExtractFeature::extract_features(const Position &pos) {
-  std::map<std::string, std::map<std::string, std::pair<int16_t, int16_t>>>
-      features;
+void ValueFeat::add_bitboard(FeatureName f, Bitboard b) {
+  while(b) {
+    square_counts[f][pop_lsb(&b)] += 1;
+    total_counts[f] += 1;
+  }
+}
 
-  features["material"] = ExtractFeature::feature_value<FeatureSquareList>(
-      ExtractFeature::material(pos));
-  features["space"] = ExtractFeature::feature_value<FeatureSquareList>(
-      ExtractFeature::space(pos));
-  features["mobility"] = ExtractFeature::feature_value<FeatureSquareList>(
-      ExtractFeature::mobility(pos));
-  features["queen"] = ExtractFeature::feature_value<FeatureSquareList>(
-      ExtractFeature::queen(pos));
-  features["bishop"] = ExtractFeature::feature_value<FeatureSquareList>(
-      ExtractFeature::bishop(pos));
-  features["knight"] = ExtractFeature::feature_value<FeatureSquareList>(
-      ExtractFeature::knight(pos));
-  features["rook"] = ExtractFeature::feature_value<FeatureSquareList>(
-      ExtractFeature::rook(pos));
-  features["threats"] = ExtractFeature::feature_value<FeatureSquareList>(
-      ExtractFeature::threats(pos));
-  features["king"] = ExtractFeature::feature_value<FeatureSquareList>(
-      ExtractFeature::king(pos));
-  features["passed-pawns"] = ExtractFeature::feature_value<FeatureSquareList>(
-      ExtractFeature::passed_pawns(pos));
+const std::string ValueFeat::pretty(FeatureName name) {
+  std::string s = "\n    +---+---+---+---+---+---+---+---+\n";
 
-  return features;
+  for (Rank r = RANK_8; r >= RANK_1; --r) {
+    s += "  " + std::to_string(r + 1) + " ";
+    for (File f = FILE_A; f <= FILE_H; ++f) {
+      int square_count = this->square_counts[name][make_square(f, r)];
+      s += "| " + (square_count == 0 ? " " : std::to_string(square_count)) +
+           " ";
+    }
+    s += "|\n    +---+---+---+---+---+---+---+---+\n";
+  }
+
+  s += "\n      a   b   c   d   e   f   g   h\n\n";
+
+  return s;
+}
+
+bool ValueFeat::compare(FeatureName name, const ValueFeat &x) {
+  if (total_counts[name] != x.total_counts[name])
+    return false;
+
+  for (unsigned s = 0; s < 64; ++s)
+    if (square_counts[name][s] != x.square_counts[name][s])
+      return false;
+
+  return true;
 }

@@ -24,7 +24,6 @@
 #include <string>
 
 #include "evaluate.h"
-#include "featextract.h"
 #include "movegen.h"
 #include "position.h"
 #include "search.h"
@@ -147,12 +146,10 @@ namespace {
   }
 
   void print_features(const Position &pos) {
-    ValueFeat val_features(ExtractFeature::extract_features(pos));
+    CompFeat features(Eval::evaluate_comp_features(pos));
 
-    for (unsigned i = 0; i < FEATURE_COUNT; ++i) {
-      sync_cout << std::setw(48)
-                << FEATURE_NAMES[i].first + "--" + FEATURE_NAMES[i].second
-                << std::setw(6) << val_features.features[i] << sync_endl;
+    for (unsigned f = 0; f < FEATURE_COUNT; ++f) {
+      sync_cout << std::setw(6) << features.features[f] << sync_endl;
     }
   }
 

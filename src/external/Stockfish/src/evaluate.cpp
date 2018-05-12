@@ -29,7 +29,6 @@
 #include "material.h"
 #include "pawns.h"
 
-#include "featextract.h"
 
 namespace {
 
@@ -84,41 +83,39 @@ namespace {
     Evaluation& operator=(const Evaluation&) = delete;
 
     Value value(bool force_eval);
-
-    template <Color C>
-    friend std::map<std::string, FeatureSquareList> _space(Evaluation<> e,
-                                                           const Position &pos);
-    template <Color C, PieceType Pt>
-    friend std::map<std::string, FeatureSquareList> _minor(Evaluation<> e,
-                                                           const Position &pos);
-    template <Color C>
-    friend std::map<std::string, FeatureSquareList> _rook(Evaluation<> e,
-                                                          const Position &pos);
-    template <Color C>
-    friend std::map<std::string, FeatureSquareList> _queen(Evaluation<> e,
-                                                           const Position &pos);
-    template <Color C, PieceType Pt>
-    friend FeatureSquareList _mobility(Evaluation<> e, const Position &pos);
-
-    template <Color C>
-    friend std::map<std::string, FeatureSquareList>
-    _threats(Evaluation<> e, const Position &pos);
-
-    template <Color C>
-    friend std::map<std::string, FeatureSquareList> _king(Evaluation<> e,
-                                                          const Position &pos);
-    template <Color C>
-    friend std::map<std::string, FeatureSquareList>
-    _passed_pawns(Evaluation<> e, const Position &pos);
+    void value_feat(ValueFeat& white_features, ValueFeat &black_features, bool force_eval);
 
   private:
     // Evaluation helpers (used when calling value())
-    template<Color Us> void initialize(bool force_eval);
-    template<Color Us> Score evaluate_king();
-    template<Color Us> Score evaluate_threats();
-    template<Color Us> Score evaluate_passed_pawns();
-    template<Color Us> Score evaluate_space();
-    template<Color Us, PieceType Pt> Score evaluate_pieces();
+    template <Color Us> void initialize(bool force_eval);
+
+    template <Color Us> void evaluate_feat_material(ValueFeat &features);
+
+    template <Color Us> Score evaluate_king();
+    template <Color Us> void evaluate_feat_king(ValueFeat &features);
+
+    template <Color Us> Score evaluate_threats();
+
+    template <Color Us>
+    void populate_threats(ValueFeat &features, Square s,
+                          PieceType threatened_type, std::string threatner);
+    template <Color Us> void evaluate_feat_threats(ValueFeat &features);
+
+    template <Color Us> Score evaluate_passed_pawns();
+    template <Color Us> void evaluate_feat_passed_pawns(ValueFeat &features);
+
+    template <Color Us> Score evaluate_space();
+    template <Color Us> void evaluate_feat_space(ValueFeat &features);
+
+    template <Color Us, PieceType Pt> Score evaluate_pieces();
+    template <Color Us, PieceType Pt>
+    void evaluate_feat_minor(ValueFeat &features);
+    template <Color Us> void evaluate_feat_rook(ValueFeat &features);
+    template <Color Us> void evaluate_feat_queen(ValueFeat &features);
+
+    template <Color Us, PieceType Pt>
+    void evaluate_feat_mobility(ValueFeat &features);
+
     ScaleFactor evaluate_scale_factor(Value eg);
     Score evaluate_initiative(Value eg);
 
@@ -423,10 +420,17 @@ namespace {
     return score;
   }
 
-  template <Color Us, PieceType Pt>
-  std::map<std::string, FeatureSquareList> _minor(Evaluation<> e,
-                                                  const Position &pos) {
-    e.value(true);
+  template<Tracing T> template <Color Us>
+  void Evaluation<T>::evaluate_feat_material(ValueFeat &features) {
+    features.add_bitboard(MATERIAL__BISHOP, pos.pieces(Us, BISHOP));
+    features.add_bitboard(MATERIAL__KNIGHT, pos.pieces(Us, KNIGHT));
+    features.add_bitboard(MATERIAL__PAWN, pos.pieces(Us, PAWN));
+    features.add_bitboard(MATERIAL__QUEEN, pos.pieces(Us, QUEEN));
+    features.add_bitboard(MATERIAL__ROOK, pos.pieces(Us, ROOK));
+  }
+
+  template<Tracing T> template <Color Us, PieceType Pt>
+  void Evaluation<T>::evaluate_feat_minor(ValueFeat &features) {
 
     const Color Them = (Us == WHITE ? BLACK : WHITE);
     const Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
@@ -435,23 +439,15 @@ namespace {
     Square s;
     Bitboard b, bb;
 
-    std::map<std::string, FeatureSquareList> feature;
-
-    feature["pawn-supported-occupied-outpost"] = FeatureSquareList();
-    feature["pawn-unsupported-occupied-outpost"] = FeatureSquareList();
-    feature["pawn-supported-reachable-outpost"] = FeatureSquareList();
-    feature["pawn-unsupported-reachable-outpost"] = FeatureSquareList();
-    feature["minor-behind-pawn"] = FeatureSquareList();
-
-    if (Pt == BISHOP) {
-      feature["pawns-on-same-color-squares"] = FeatureSquareList();
-    }
-
     while ((s = *pl++) != SQ_NONE) {
 
       if (    relative_rank(Us, s) < RANK_5
           && (pos.pieces(PAWN) & (s + pawn_push(Us)))) {
-        feature["minor-behind-pawn"].add_square(s);
+
+        if (Pt == BISHOP)
+          features.add_square(BISHOP__MINOR_BEHIND_PAWN, s);
+        else
+          features.add_square(KNIGHT__MINOR_BEHIND_PAWN, s);
       }
 
       // Find attacked squares, including x-ray attacks for bishops and rooks
@@ -462,22 +458,38 @@ namespace {
       if (pos.pinned_pieces(Us) & s)
           b &= LineBB[pos.square<KING>(Us)][s];
 
-      bb = OutpostRanks & ~(e.pe->pawn_attacks_span(Them));
+      bb = OutpostRanks & ~(pe->pawn_attacks_span(Them));
       if (bb & SquareBB[s]) {
-          if (!!(e.attackedBy[Us][PAWN] & SquareBB[s])) {
-              feature["pawn-supported-occupied-outpost"].add_square(s);
+          if (!!(attackedBy[Us][PAWN] & SquareBB[s])) {
+
+              if (Pt == BISHOP)
+                features.add_square(BISHOP__PAWN_SUPPORTED_OCCUPIED_OUTPOST, s);
+              else
+                features.add_square(KNIGHT__PAWN_SUPPORTED_OCCUPIED_OUTPOST, s);
           } else {
-              feature["pawn-unsupported-occupied-outpost"].add_square(s);
+
+              if (Pt == BISHOP)
+                features.add_square(BISHOP__PAWN_UNSUPPORTED_OCCUPIED_OUTPOST, s);
+              else
+                features.add_square(KNIGHT__PAWN_UNSUPPORTED_REACHABLE_OUTPOST, s);
           }
       }
       else
       {
           bb &= b & ~pos.pieces(Us);
           if (bb) {
-             if (!!(e.attackedBy[Us][PAWN] & bb)) {
-                 feature["pawn-supported-reachable-outpost"].add_square(s);
-             } else {
-                 feature["pawn-unsupported-reachable-outpost"].add_square(s);
+            if (!!(attackedBy[Us][PAWN] & bb)) {
+
+              if (Pt == BISHOP)
+                features.add_square(BISHOP__PAWN_SUPPORTED_REACHABLE_OUTPOST, s);
+              else
+                features.add_square(KNIGHT__PAWN_SUPPORTED_REACHABLE_OUTPOST, s);
+            } else {
+
+              if (Pt == BISHOP)
+                features.add_square(BISHOP__PAWN_UNSUPPORTED_REACHABLE_OUTPOST, s);
+              else
+                features.add_square(KNIGHT__PAWN_UNSUPPORTED_REACHABLE_OUTPOST, s);
              }
           }
       }
@@ -487,115 +499,103 @@ namespace {
         Bitboard LightSquares = (0xFFFFFFFFFFFFFFFFULL ^ DarkSquares);
 
         if (SquareBB[s] & DarkSquares) {
-          feature["pawns-on-same-color-squares"].add_bitboard(DarkSquares &
-                                                              our_pawns);
+          features.add_bitboard(BISHOP__PAWNS_ON_SAME_COLOR_SQUARES,
+                                DarkSquares & our_pawns);
         } else {
           assert(SquareBB[s] & LightSquares);
-          feature["pawns-on-same-color-squares"].add_bitboard(LightSquares &
-                                                              our_pawns);
+
+          features.add_bitboard(BISHOP__PAWNS_ON_SAME_COLOR_SQUARES,
+                                LightSquares & our_pawns);
         }
       }
     }
-
-    return feature;
   }
 
-  template <Color Us>
-  std::map<std::string, FeatureSquareList> _rook(Evaluation<> e,
-                                                 const Position &pos) {
-    e.value(true);
+  template<Tracing T> template <Color Us>
+  void Evaluation<T>::evaluate_feat_rook(ValueFeat &features) {
 
     const Color Them = (Us == WHITE ? BLACK : WHITE);
     const Square *pl = pos.squares<ROOK>(Us);
     Square s;
 
-    std::map<std::string, FeatureSquareList> feature;
-    feature["rook-on-pawn"] = FeatureSquareList();
-    feature["rook-on-open-file"] = FeatureSquareList();
-    feature["rook-on-semi-open-file"] = FeatureSquareList();
-    feature["trapped"] = FeatureSquareList();
-    feature["castle"] = FeatureSquareList();
-
     while ((s = *pl++) != SQ_NONE) {
       if (relative_rank(Us, s) >= RANK_5)
-        feature["rook-on-pawn"].add_bitboard(pos.pieces(Them, PAWN) &
-                                             PseudoAttacks[ROOK][s]);
 
-      if (e.pe->semiopen_file(Us, file_of(s))) {
-        if (e.pe->semiopen_file(Them, file_of(s))) {
-          feature["rook-on-open-file"].add_square(s);
+        features.add_bitboard(ROOK__ROOK_ON_PAWN,
+                              pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
+
+      if (pe->semiopen_file(Us, file_of(s))) {
+        if (pe->semiopen_file(Them, file_of(s))) {
+
+          features.add_square(ROOK__ROOK_ON_OPEN_FILE, s);
         } else {
-          feature["rook-on-semi-open-file"].add_square(s);
+
+          features.add_square(ROOK__ROOK_ON_SEMI_OPEN_FILE, s);
         }
       } else {
         Square ksq = pos.square<KING>(Us);
 
         if (   ((file_of(ksq) < FILE_E) == (file_of(s) < file_of(ksq)))
-            && !e.pe->semiopen_side(Us, file_of(ksq), file_of(s) < file_of(ksq))) {
-              feature["trapped"].add_square(s);
+            && !pe->semiopen_side(Us, file_of(ksq), file_of(s) < file_of(ksq))) {
+
+              features.add_square(ROOK__TRAPPED, s);
+
               if (pos.can_castle(Us))
-                feature["castle"].add_square(s);
+                features.add_square(ROOK__CASTLE, s);
             }
       }
     }
-
-    return feature;
   }
 
-  template <Color Us>
-  std::map<std::string, FeatureSquareList> _queen(Evaluation<> e,
-                                                  const Position &pos) {
+  template<Tracing T> template <Color Us>
+  void Evaluation<T>::evaluate_feat_queen(ValueFeat &features) {
     const Color Them = (Us == WHITE ? BLACK : WHITE);
     const Square *pl = pos.squares<QUEEN>(Us);
 
     const Square s = *pl;
 
-    std::map<std::string, FeatureSquareList> feature;
-    FeatureSquareList weak;
-    feature["weak"] = weak;
-
     if (s != SQ_NONE) {
       Bitboard pinners;
       if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, pinners)) {
-        feature["weak"] = FeatureSquareList(pos.pieces(Us, QUEEN));
+        features.add_bitboard(QUEEN__WEAK, pos.pieces(Us, QUEEN));
       }
     }
-
-    return feature;
   }
 
-  template <Color Us, PieceType Pt>
-  FeatureSquareList _mobility(Evaluation<> e, const Position &pos) {
-    e.value(true);
+  template<Tracing T> template <Color Us, PieceType Pt>
+  void Evaluation<T>::evaluate_feat_mobility(ValueFeat &features) {
 
     if (Pt == ALL_PIECES) {
-      FeatureSquareList all_square_list;
+      features.add_bitboard(MOBILITY__ALL, mobilityArea[Us]);
+    } else {
+      const Square* pl = pos.squares<Pt>(Us);
 
-      all_square_list.add_bitboard(e.mobilityArea[Us]);
+      Bitboard b;
+      Square s;
 
-      return all_square_list;
+      while ((s = *pl++) != SQ_NONE)
+      {
+          // Find attacked squares, including x-ray attacks for bishops and rooks
+          b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(Us, QUEEN))
+            : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(Us, ROOK, QUEEN))
+                           : pos.attacks_from<Pt>(s);
+
+          if (pos.pinned_pieces(Us) & s)
+              b &= LineBB[pos.square<KING>(Us)][s];
+
+          if (Pt == BISHOP) {
+            features.add_bitboard(MOBILITY__BISHOP, b & mobilityArea[Us]);
+          } else if (Pt == KNIGHT) {
+            features.add_bitboard(MOBILITY__KNIGHT, b & mobilityArea[Us]);
+          } else if (Pt == ROOK) {
+            features.add_bitboard(MOBILITY__ROOK, b & mobilityArea[Us]);
+          } else if (Pt == QUEEN) {
+            features.add_bitboard(MOBILITY__QUEEN, b & mobilityArea[Us]);
+          } else {
+            assert(false);
+          }
+      }
     }
-
-    const Square* pl = pos.squares<Pt>(Us);
-
-    Bitboard b;
-    Square s;
-    FeatureSquareList pt_square_list;
-
-    while ((s = *pl++) != SQ_NONE)
-    {
-        // Find attacked squares, including x-ray attacks for bishops and rooks
-        b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(Us, QUEEN))
-          : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(Us, ROOK, QUEEN))
-                         : pos.attacks_from<Pt>(s);
-
-        if (pos.pinned_pieces(Us) & s)
-            b &= LineBB[pos.square<KING>(Us)][s];
-
-        pt_square_list.add_bitboard(b & e.mobilityArea[Us]);
-    }
-
-    return pt_square_list;
   }
 
   // evaluate_king() assigns bonuses and penalties to a king of a given color
@@ -722,10 +722,8 @@ namespace {
     return score;
   }
 
-  template <Color Us>
-  std::map<std::string, FeatureSquareList> _king(Evaluation<> e,
-                                                 const Position &pos) {
-    e.value(true);
+  template<Tracing T>template <Color Us>
+  void Evaluation<T>::evaluate_feat_king(ValueFeat &features) {
 
     const Color Them    = (Us == WHITE ? BLACK : WHITE);
     const Square Up     = (Us == WHITE ? NORTH : SOUTH);
@@ -734,100 +732,93 @@ namespace {
     const Square ksq = pos.square<KING>(Us);
     Bitboard kingOnlyDefended, b, b1, b2, safe, other;
 
-    auto feature = e.pe->_king_safety<Us>(pos, ksq);
-    feature["king-attackers-count"] = FeatureSquareList();
-    feature["king-adj-zone-attacks-count"] = FeatureSquareList();
-    feature["king-only-defended"] = FeatureSquareList();
-    feature["not-defended-larger-king-ring"] = FeatureSquareList();
-    feature["enemy-safe-queen-check"] = FeatureSquareList();
-    feature["enemy-safe-rook-check"] = FeatureSquareList();
-    feature["enemy-other-rook-check"] = FeatureSquareList();
-    feature["enemy-safe-bishop-check"] = FeatureSquareList();
-    feature["enemy-other-bishop-check"] = FeatureSquareList();
-    feature["enemy-safe-knight-check"] = FeatureSquareList();
-    feature["enemy-other-knight-check"] = FeatureSquareList();
-    feature["close-enemies-one"] = FeatureSquareList();
-    feature["close-enemies-two"] = FeatureSquareList();
-    feature["pawnless-flank"] = FeatureSquareList();
+    pe->feat_king_safety<Us>(pos, ksq, features);
 
-    feature["king-attackers-count"].add_count(e.kingAttackersCount[Them]);
+    features.add_count(KING__KING_ATTACKERS_COUNT, kingAttackersCount[Them]);
 
     // Find the attacked squares which are defended only by our king...
-    kingOnlyDefended =   e.attackedBy[Them][ALL_PIECES]
-                      &  e.attackedBy[Us][KING]
-                      & ~(e.attackedBy2[Us]);
+    kingOnlyDefended =   attackedBy[Them][ALL_PIECES]
+                      &  attackedBy[Us][KING]
+                      & ~(attackedBy2[Us]);
 
     // ... and those which are not defended at all in the larger king ring
-    b =  e.attackedBy[Them][ALL_PIECES] & ~(e.attackedBy[Us][ALL_PIECES])
-       & e.kingRing[Us] & ~pos.pieces(Them);
+    b =  attackedBy[Them][ALL_PIECES] & ~(attackedBy[Us][ALL_PIECES])
+       & kingRing[Us] & ~pos.pieces(Them);
 
-    feature["king-adj-zone-attacks-count"].add_count(
-        e.kingAdjacentZoneAttacksCount[Them]);
-    feature["king-only-defended"].add_bitboard(kingOnlyDefended);
+    features.add_count(KING__KING_ADJ_ZONE_ATTACKS_COUNT,
+                       kingAdjacentZoneAttacksCount[Them]);
+
+    features.add_bitboard(KING__KING_ONLY_DEFENDED, kingOnlyDefended);
     // pinned effect will be covered later in attack feature
-    feature["not-defended-larger-king-ring"].add_bitboard(b);
+
+    features.add_bitboard(KING__NOT_DEFENDED_LARGER_KING_RING, b);
 
     // Analyse the safe enemy's checks which are possible on next move
     safe  = ~pos.pieces(Them);
-    safe &= ~(e.attackedBy[Us][ALL_PIECES]) | (kingOnlyDefended & e.attackedBy2[Them]);
+    safe &= ~(attackedBy[Us][ALL_PIECES]) | (kingOnlyDefended & attackedBy2[Them]);
 
     b1 = pos.attacks_from<  ROOK>(ksq);
     b2 = pos.attacks_from<BISHOP>(ksq);
 
     // Enemy queen safe checks
-    feature["enemy-safe-queen-check"].add_bitboard(
-        (b1 | b2) & e.attackedBy[Them][QUEEN] & safe);
+
+    features.add_bitboard(KING__ENEMY_SAFE_QUEEN_CHECK,
+                          (b1 | b2) & attackedBy[Them][QUEEN] & safe);
 
     // For minors and rooks, also consider the square safe if attacked twice,
     // and only defended by our queen.
-    safe |=  e.attackedBy2[Them]
-           & ~(e.attackedBy2[Us] | pos.pieces(Them))
-           & e.attackedBy[Us][QUEEN];
+    safe |=  attackedBy2[Them]
+           & ~(attackedBy2[Us] | pos.pieces(Them))
+           & attackedBy[Us][QUEEN];
 
     // Some other potential checks are also analysed, even from squares
     // currently occupied by the opponent own pieces, as long as the square
     // is not attacked by our pawns, and is not occupied by a blocked pawn.
-    other = ~(   e.attackedBy[Us][PAWN]
+    other = ~(   attackedBy[Us][PAWN]
               | (pos.pieces(Them, PAWN) & shift<Up>(pos.pieces(PAWN))));
 
     // Enemy rooks safe and other checks
-    feature["enemy-safe-rook-check"].add_bitboard(
-        b1 & e.attackedBy[Them][ROOK] & safe);
-    feature["enemy-other-rook-check"].add_bitboard(
-        b1 & e.attackedBy[Them][ROOK] & other);
+
+    features.add_bitboard(KING__ENEMY_SAFE_ROOK_CHECK,
+                          b1 & attackedBy[Them][ROOK] & safe);
+
+    features.add_bitboard(KING__ENEMY_OTHER_ROOK_CHECK,
+                          b1 & attackedBy[Them][ROOK] & other);
 
     // Enemy bishops safe and other checks
-    feature["enemy-safe-bishop-check"].add_bitboard(
-        b2 & e.attackedBy[Them][BISHOP] & safe);
-    feature["enemy-other-bishop-check"].add_bitboard(
-        b2 & e.attackedBy[Them][BISHOP] & other);
+
+    features.add_bitboard(KING__ENEMY_SAFE_BISHOP_CHECK,
+                          b2 & attackedBy[Them][BISHOP] & safe);
+
+    features.add_bitboard(KING__ENEMY_OTHER_BISHOP_CHECK,
+                          b2 & attackedBy[Them][BISHOP] & other);
 
     // Enemy knights safe and other checks
-    b = pos.attacks_from<KNIGHT>(ksq) & e.attackedBy[Them][KNIGHT];
-    feature["enemy-safe-knight-check"].add_bitboard(b & safe);
-    feature["enemy-other-knight-check"].add_bitboard(b & other);
+    b = pos.attacks_from<KNIGHT>(ksq) & attackedBy[Them][KNIGHT];
+
+    features.add_bitboard(KING__ENEMY_SAFE_KNIGHT_CHECK, b & safe);
+    features.add_bitboard(KING__ENEMY_OTHER_KNIGHT_CHECK, b & safe);
 
     // THIS CODE DERIVES FROM A LATER STOCKFISH VERSION
     Bitboard kf = KingFlank[file_of(ksq)];
 
     // Penalty when our king is on a pawnless flank
     if (!(pos.pieces(PAWN) & kf))
-        feature["pawnless-flank"].add_count(1);
+        features.add_count(KING__PAWNLESS_FLANK, 1);
 
     // Find the squares that opponent attacks in our king flank, and the squares
     // which are attacked twice in that flank but not defended by our pawns.
-    b1 = e.attackedBy[Them][ALL_PIECES] & kf & Camp;
-    feature["close-enemies-one"].add_bitboard(b1);
-    b2 = b1 & e.attackedBy2[Them] & ~(e.attackedBy[Us][PAWN]);
-    feature["close-enemies-two"].add_bitboard(b2);
+    b1 = attackedBy[Them][ALL_PIECES] & kf & Camp;
+    features.add_bitboard(KING__CLOSE_ENEMIES_ONE, b1);
 
-    return feature;
+    b2 = b1 & attackedBy2[Them] & ~(attackedBy[Us][PAWN]);
+    features.add_bitboard(KING__CLOSE_ENEMIES_TWO, b2);
   }
 
   // evaluate_threats() assigns bonuses according to the types of the attacking
   // and the attacked pieces.
 
-  template<Tracing T>  template<Color Us>
+  template<Tracing T> template<Color Us>
   Score Evaluation<T>::evaluate_threats() {
 
     const Color Them        = (Us == WHITE ? BLACK      : WHITE);
@@ -918,61 +909,73 @@ namespace {
     return score;
   }
 
+  template <Tracing T>
   template <Color Us>
-  void _populate_threats(std::map<std::string, FeatureSquareList> &feature,
-                         Square s, PieceType threatened_type,
-                         std::string threatner) {
+  void Evaluation<T>::populate_threats(ValueFeat &features, Square s,
+                                       PieceType threatened_type,
+                                       std::string threatner) {
     const Color Them = (Us == WHITE ? BLACK : WHITE);
 
     switch (threatened_type) {
     case PAWN:
-      feature["pawn-threat-by-" + threatner].add_square(s);
+      if (threatner == "minor") {
+        features.add_square(THREATS__PAWN_THREAT_BY_MINOR, s);
+      } else {
+        assert(threatner == "rook");
+        features.add_square(THREATS__PAWN_THREAT_BY_ROOK, s);
+      }
       break;
     case KNIGHT:
     case BISHOP:
-      feature["minor-threat-by-" + threatner].add_square(s);
+      if (threatner == "minor") {
+        features.add_square(THREATS__MINOR_THREAT_BY_MINOR, s);
+      } else {
+        assert(threatner == "rook");
+        features.add_square(THREATS__MINOR_THREAT_BY_ROOK, s);
+      }
       break;
     case ROOK:
-      feature["rook-threat-by-" + threatner].add_square(s);
+      if (threatner == "minor") {
+        features.add_square(THREATS__ROOK_THREAT_BY_MINOR, s);
+      } else {
+        assert(threatner == "rook");
+        features.add_square(THREATS__ROOK_THREAT_BY_ROOK, s);
+      }
       break;
     case QUEEN:
-      feature["queen-threat-by-" + threatner].add_square(s);
+      if (threatner == "minor") {
+        features.add_square(THREATS__QUEEN_THREAT_BY_MINOR, s);
+      } else {
+        assert(threatner == "rook");
+        features.add_square(THREATS__QUEEN_THREAT_BY_ROOK, s);
+      }
       break;
     case KING:
-      feature["king-threat-by-" + threatner].add_square(s);
+      if (threatner == "minor") {
+        features.add_square(THREATS__KING_THREAT_BY_MINOR, s);
+      } else {
+        assert(threatner == "rook");
+        features.add_square(THREATS__KING_THREAT_BY_ROOK, s);
+      }
       break;
     default:
       assert(false);
     };
 
-    if (threatened_type != PAWN)
-      feature["threat-by-" + threatner + "-rank"].add_count(
-          (int)relative_rank(Them, s));
+    if (threatened_type != PAWN) {
+      if (threatner == "minor") {
+        features.add_count(THREATS__THREAT_BY_MINOR_RANK,
+                           (int)relative_rank(Them, s));
+      } else {
+        assert(threatner == "rook");
+        features.add_count(THREATS__THREAT_BY_ROOK_RANK,
+                           (int)relative_rank(Them, s));
+      }
+    }
   }
 
-  template <Color Us>
-  std::map<std::string, FeatureSquareList> _threats(Evaluation<> e,
-                                                    const Position &pos) {
-    e.value(true);
-
-    std::map<std::string, FeatureSquareList> feature;
-    feature["safe-pawn"] = FeatureSquareList();
-    feature["hanging-pawn"] = FeatureSquareList();
-    feature["pawn-push"] = FeatureSquareList();
-    feature["pawn-threat-by-minor"] = FeatureSquareList();
-    feature["minor-threat-by-minor"] = FeatureSquareList();
-    feature["rook-threat-by-minor"] = FeatureSquareList();
-    feature["queen-threat-by-minor"] = FeatureSquareList();
-    feature["king-threat-by-minor"] = FeatureSquareList();
-    feature["pawn-threat-by-rook"] = FeatureSquareList();
-    feature["minor-threat-by-rook"] = FeatureSquareList();
-    feature["rook-threat-by-rook"] = FeatureSquareList();
-    feature["queen-threat-by-rook"] = FeatureSquareList();
-    feature["king-threat-by-rook"] = FeatureSquareList();
-    feature["threat-by-minor-rank"] = FeatureSquareList();
-    feature["threat-by-rook-rank"] = FeatureSquareList();
-    feature["hanging"] = FeatureSquareList();
-    feature["threat-by-king"] = FeatureSquareList();
+  template<Tracing T> template <Color Us>
+  void Evaluation<T>::evaluate_feat_threats(ValueFeat &features) {
 
     const Color Them        = (Us == WHITE ? BLACK      : WHITE);
     const Square Up         = (Us == WHITE ? NORTH      : SOUTH);
@@ -983,25 +986,25 @@ namespace {
     Bitboard b, weak, defended, stronglyProtected, safeThreats;
 
     // Non-pawn enemies attacked by a pawn
-    weak = (pos.pieces(Them) ^ pos.pieces(Them, PAWN)) & e.attackedBy[Us][PAWN];
+    weak = (pos.pieces(Them) ^ pos.pieces(Them, PAWN)) & attackedBy[Us][PAWN];
 
     if (weak)
     {
-        b = pos.pieces(Us, PAWN) & ( ~(e.attackedBy[Them][ALL_PIECES])
-                                    | (e.attackedBy[Us][ALL_PIECES]));
+        b = pos.pieces(Us, PAWN) & ( ~(attackedBy[Them][ALL_PIECES])
+                                    | (attackedBy[Us][ALL_PIECES]));
 
         safeThreats = (shift<Right>(b) | shift<Left>(b)) & weak;
 
-        feature["safe-pawn"].add_bitboard(safeThreats);
+        features.add_bitboard(THREATS__SAFE_PAWN, safeThreats);
 
         if (weak ^ safeThreats)
-            feature["hanging-pawn"].add_bitboard(weak ^ safeThreats);
+            features.add_bitboard(THREATS__HANGING_PAWN, weak ^ safeThreats);
     }
 
     // Squares strongly protected by the opponent, either because they attack the
     // square with a pawn, or because they attack the square twice and we don't.
-    stronglyProtected =  e.attackedBy[Them][PAWN]
-                       | (e.attackedBy2[Them] & ~(e.attackedBy2[Us]));
+    stronglyProtected =  attackedBy[Them][PAWN]
+                       | (attackedBy2[Them] & ~(attackedBy2[Us]));
 
     // Non-pawn enemies, strongly protected
     defended =  (pos.pieces(Them) ^ pos.pieces(Them, PAWN))
@@ -1010,30 +1013,32 @@ namespace {
     // Enemies not strongly protected and under our attack
     weak =   pos.pieces(Them)
           & ~stronglyProtected
-          &  (e.attackedBy[Us][ALL_PIECES]);
+          &  (attackedBy[Us][ALL_PIECES]);
 
     // Add a bonus according to the kind of attacking pieces
     if (defended | weak)
     {
-        b = (defended | weak) & (e.attackedBy[Us][KNIGHT] | e.attackedBy[Us][BISHOP]);
+        b = (defended | weak) & (attackedBy[Us][KNIGHT] | attackedBy[Us][BISHOP]);
         while (b)
         {
             Square s = pop_lsb(&b);
-            _populate_threats<Us>(feature, s, type_of(pos.piece_on(s)), "minor");
+            populate_threats<Us>(features, s, type_of(pos.piece_on(s)), "minor");
         }
 
-        b = (pos.pieces(Them, QUEEN) | weak) & e.attackedBy[Us][ROOK];
+        b = (pos.pieces(Them, QUEEN) | weak) & attackedBy[Us][ROOK];
         while (b)
         {
             Square s = pop_lsb(&b);
-            _populate_threats<Us>(feature, s, type_of(pos.piece_on(s)), "rook");
+            populate_threats<Us>(features, s, type_of(pos.piece_on(s)), "rook");
         }
 
-        feature["hanging"].add_bitboard(weak & ~(e.attackedBy[Them][ALL_PIECES]));
+        features.add_bitboard(THREATS__HANGING,
+                              weak & ~(attackedBy[Them][ALL_PIECES]));
 
-        b = weak & e.attackedBy[Us][KING];
+        b = weak & attackedBy[Us][KING];
         if (b)
-          feature["threat-by-king"].add_count(more_than_one(b) > 0 ? 2 : 1);
+          features.add_count(THREATS__THREAT_BY_KING,
+                             more_than_one(b) > 0 ? 2 : 1);
     }
 
     // Find squares where our pawns can push on the next move
@@ -1041,17 +1046,15 @@ namespace {
     b |= shift<Up>(b & TRank3BB) & ~pos.pieces();
 
     // Keep only the squares which are not completely unsafe
-    b &= ~(e.attackedBy[Them][PAWN])
-        & ((e.attackedBy[Us][ALL_PIECES]) | ~(e.attackedBy[Them][ALL_PIECES]));
+    b &= ~(attackedBy[Them][PAWN])
+        & ((attackedBy[Us][ALL_PIECES]) | ~(attackedBy[Them][ALL_PIECES]));
 
     // Add a bonus for each new pawn threats from those squares
     b =  (shift<Left>(b) | shift<Right>(b))
        &  pos.pieces(Them)
-       & ~(e.attackedBy[Us][PAWN]);
+       & ~(attackedBy[Us][PAWN]);
 
-    feature["pawn-push"].add_bitboard(b);
-
-    return feature;
+    features.add_bitboard(THREATS__PAWN_PUSH, b);
   }
 
   // evaluate_passed_pawns() evaluates the passed pawns and candidate passed
@@ -1142,30 +1145,15 @@ namespace {
     return score;
   }
 
-  template <Color Us>
-  std::map<std::string, FeatureSquareList> _passed_pawns(Evaluation<> e,
-                                                         const Position &pos) {
-    e.value(true);
+  template<Tracing T> template <Color Us>
+  void Evaluation<T>::evaluate_feat_passed_pawns(ValueFeat &features) {
 
     const Color Them = (Us == WHITE ? BLACK : WHITE);
     const Square Up  = (Us == WHITE ? NORTH : SOUTH);
 
     Bitboard b, bb, squaresToQueen, defendedSquares, unsafeSquares;
 
-    b = e.pe->passed_pawns(Us);
-
-    std::map<std::string, FeatureSquareList> feature;
-    feature["hindered-passed-pawn"] = FeatureSquareList();
-    feature["blocksq-their-king-distance"] = FeatureSquareList();
-    feature["blocksq-our-king-distance"] = FeatureSquareList();
-    feature["two-blocksq-our-king-distance"] = FeatureSquareList();
-    feature["empty-blocksq"] = FeatureSquareList();
-    feature["no-unsafe-squares"] = FeatureSquareList();
-    feature["no-unsafe-blocksq"] = FeatureSquareList();
-    feature["fully-defended-path"] = FeatureSquareList();
-    feature["defended-block-square"] = FeatureSquareList();
-    feature["friendly-occupied-blocksq"] = FeatureSquareList();
-    feature["average-candidate-passers"] = FeatureSquareList();
+    b = pe->passed_pawns(Us);
 
     while (b)
     {
@@ -1173,9 +1161,9 @@ namespace {
 
         assert(!(pos.pieces(Them, PAWN) & forward_file_bb(Us, s + Up)));
 
-        bb = forward_file_bb(Us, s) & (e.attackedBy[Them][ALL_PIECES] | pos.pieces(Them));
+        bb = forward_file_bb(Us, s) & (attackedBy[Them][ALL_PIECES] | pos.pieces(Them));
 
-        feature["hindered-passed-pawn"].add_bitboard(bb);
+        features.add_bitboard(PASSED_PAWNS__HINDERED_PASSED_PAWN, bb);
 
         int r = relative_rank(Us, s) - RANK_2;
         int rr = r * (r - 1);
@@ -1184,20 +1172,20 @@ namespace {
         {
             Square blockSq = s + Up;
 
-            feature["blocksq-their-king-distance"].add_count(
-              distance(pos.square<KING>(Them), blockSq));
-            feature["blocksq-our-king-distance"].add_count(
-              distance(pos.square<KING>(Us), blockSq));
+            features.add_count(PASSED_PAWNS__BLOCKSQ_THEIR_KING_DISTANCE,
+                               distance(pos.square<KING>(Them), blockSq));
+            features.add_count(PASSED_PAWNS__BLOCKSQ_OUR_KING_DISTANCE,
+                               distance(pos.square<KING>(Us), blockSq));
 
             // If blockSq is not the queening square then consider also a second push
             if (relative_rank(Us, blockSq) != RANK_8)
-                feature["two-blocksq-our-king-distance"].add_count(
-                  distance(pos.square<KING>(Us), blockSq + Up));
+                features.add_count(PASSED_PAWNS__TWO_BLOCKSQ_OUR_KING_DISTANCE,
+                                   distance(pos.square<KING>(Us), blockSq + Up));
 
             // If the pawn is free to advance, then increase the bonus
             if (pos.empty(blockSq))
             {
-                feature["empty-blocksq"].add_square(blockSq);
+                features.add_square(PASSED_PAWNS__EMPTY_BLOCKSQ, blockSq);
                 // If there is a rook or queen attacking/defending the pawn from behind,
                 // consider all the squaresToQueen. Otherwise consider only the squares
                 // in the pawn's path attacked or occupied by the enemy.
@@ -1206,37 +1194,35 @@ namespace {
                 bb = forward_file_bb(Them, s) & pos.pieces(ROOK, QUEEN) & pos.attacks_from<ROOK>(s);
 
                 if (!(pos.pieces(Us) & bb))
-                    defendedSquares &= e.attackedBy[Us][ALL_PIECES];
+                    defendedSquares &= attackedBy[Us][ALL_PIECES];
 
                 if (!(pos.pieces(Them) & bb))
-                    unsafeSquares &= e.attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
+                    unsafeSquares &= attackedBy[Them][ALL_PIECES] | pos.pieces(Them);
 
                 // If there aren't any enemy attacks, assign a big bonus. Otherwise
                 // assign a smaller bonus if the block square isn't attacked.
                 if (!unsafeSquares)
-                    feature["no-unsafe-squares"].add_square(s);
+                    features.add_square(PASSED_PAWNS__NO_UNSAFE_SQUARES, s);
                 if (!(unsafeSquares & blockSq))
-                  feature["no-unsafe-blocksq"].add_square(s);
+                    features.add_square(PASSED_PAWNS__NO_UNSAFE_BLOCKSQ, s);
 
                 // If the path to the queen is fully defended, assign a big bonus.
                 // Otherwise assign a smaller bonus if the block square is defended.
                 if (defendedSquares == squaresToQueen)
-                    feature["fully-defended-path"].add_square(s);
+                    features.add_square(PASSED_PAWNS__FULLY_DEFENDED_PATH, s);
                 else if (defendedSquares & blockSq)
-                    feature["defended-block-square"].add_square(s);
+                    features.add_square(PASSED_PAWNS__DEFENDED_BLOCK_SQUARE, s);
             }
             else if (pos.pieces(Us) & blockSq)
-                feature["friendly-occupied-blocksq"].add_square(s);
+                features.add_square(PASSED_PAWNS__FRIENDLY_OCCUPIED_BLOCKSQ, s);
         } // rr != 0
 
         // Scale down bonus for candidate passers which need more than one
         // pawn push to become passed or have a pawn in front of them.
         if (!pos.pawn_passed(Us, s + Up) || (pos.pieces(PAWN) & forward_file_bb(Us, s)))
-            feature["average-candidate-passers"].add_square(s);
+            features.add_square(PASSED_PAWNS__AVERAGE_CANDIDATE_PASSERS, s);
 
     }
-
-    return feature;
   }
 
   // evaluate_space() computes the space evaluation for a given side. The
@@ -1277,10 +1263,8 @@ namespace {
     return make_score(bonus * weight * weight / 16, 0);
   }
 
-  template <Color Us>
-  std::map<std::string, FeatureSquareList> _space(Evaluation<> e,
-                                                  const Position &pos) {
-    e.value(true);
+  template<Tracing T> template <Color Us>
+  void Evaluation<T>::evaluate_feat_space(ValueFeat &features) {
 
     const Color Them = (Us == WHITE ? BLACK : WHITE);
     const Bitboard SpaceMask =
@@ -1289,11 +1273,11 @@ namespace {
 
     // Find the safe squares for our pieces inside the area defined by
     // SpaceMask. A square is unsafe if it is attacked by an enemy
-    // pawn, or if it is undefended and attacked by an enemy piece.
+    // pawn, or if it is undefended and attacked by an enemy piec
     Bitboard safe =   SpaceMask
                    & ~pos.pieces(Us, PAWN)
-                   & ~e.attackedBy[Them][PAWN]
-                   & (e.attackedBy[Us][ALL_PIECES] | ~e.attackedBy[Them][ALL_PIECES]);
+                   & ~attackedBy[Them][PAWN]
+                   & (attackedBy[Us][ALL_PIECES] | ~attackedBy[Them][ALL_PIECES]);
 
     // Find all squares which are at most three squares behind some friendly pawn
     Bitboard behind = pos.pieces(Us, PAWN);
@@ -1303,12 +1287,8 @@ namespace {
     // Since SpaceMask[Us] is fully on our half of the board...
     assert(unsigned(safe >> (Us == WHITE ? 32 : 0)) == 0);
 
-    std::map<std::string, FeatureSquareList> feature;
-
-    feature["safe-squares"] = FeatureSquareList(safe);
-    feature["extra-safe-squares"] = FeatureSquareList(safe & behind);
-
-    return feature;
+    features.add_bitboard(SPACE__SAFE_SQUARES, safe);
+    features.add_bitboard(SPACE__EXTRA_SAFE_SQUARES, safe & behind);
   }
 
   // evaluate_initiative() computes the initiative correction value for the
@@ -1451,6 +1431,55 @@ namespace {
     return (pos.side_to_move() == WHITE ? v : -v) + Eval::Tempo; // Side to move point of view
   }
 
+  template<Tracing T>
+  void Evaluation<T>::value_feat(ValueFeat &white_features,
+                                 ValueFeat &black_features, bool force_eval) {
+
+    // Main evaluation begins here
+
+    initialize<WHITE>(force_eval);
+    initialize<BLACK>(force_eval);
+
+    evaluate_feat_material<WHITE>(white_features);
+    evaluate_feat_material<BLACK>(black_features);
+
+    evaluate_feat_minor<WHITE, KNIGHT>(white_features);
+    evaluate_feat_minor<WHITE, BISHOP>(white_features);
+
+    evaluate_feat_minor<BLACK, KNIGHT>(black_features);
+    evaluate_feat_minor<BLACK, BISHOP>(black_features);
+
+    evaluate_feat_rook<WHITE>(white_features);
+    evaluate_feat_rook<BLACK>(black_features);
+
+    evaluate_feat_queen<WHITE>(white_features);
+    evaluate_feat_queen<BLACK>(black_features);
+
+    evaluate_feat_space<WHITE>(white_features);
+    evaluate_feat_space<BLACK>(black_features);
+
+    //
+    // evaluate_feat_king<WHITE>(white_features);
+    // evaluate_feat_king<BLACK>(black_features);
+    //
+    // evaluate_feat_threats<WHITE>(white_features);
+    // evaluate_feat_threats<BLACK>(black_features);
+    //
+    // evaluate_feat_passed_pawns<WHITE>(white_features);
+    // evaluate_feat_passed_pawns<BLACK>(black_features);
+    //
+    // evaluate_feat_mobility<WHITE, ALL_PIECES>(white_features);
+    // evaluate_feat_mobility<WHITE, BISHOP>(white_features);
+    // evaluate_feat_mobility<WHITE, KNIGHT>(white_features);
+    // evaluate_feat_mobility<WHITE, QUEEN>(white_features);
+    // evaluate_feat_mobility<WHITE, ROOK>(white_features);
+    //
+    // evaluate_feat_mobility<BLACK, ALL_PIECES>(black_features);
+    // evaluate_feat_mobility<BLACK, BISHOP>(black_features);
+    // evaluate_feat_mobility<BLACK, KNIGHT>(black_features);
+    // evaluate_feat_mobility<BLACK, QUEEN>(black_features);
+    // evaluate_feat_mobility<BLACK, ROOK>(black_features);
+  }
 } // namespace
 
 
@@ -1460,6 +1489,20 @@ namespace {
 Value Eval::evaluate(const Position& pos)
 {
    return Evaluation<>(pos).value(false);
+}
+
+void Eval::evaluate_features(const Position& pos, ValueFeat& white_features,
+                             ValueFeat& black_features)
+{
+  Evaluation<>(pos).value_feat(white_features, black_features, false);
+}
+
+CompFeat Eval::evaluate_comp_features(const Position& pos)
+{
+  ValueFeat white_features, black_features;
+  Evaluation<>(pos).value_feat(white_features, black_features, false);
+
+  return CompFeat(white_features, black_features);
 }
 
 /// trace() is like evaluate(), but instead of returning a value, it returns
@@ -1496,116 +1539,4 @@ std::string Eval::trace(const Position& pos) {
   ss << "\nTotal Evaluation: " << to_cp(v) << " (white side)\n";
 
   return ss.str();
-}
-
-std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>
-ExtractFeature::material(const Position &pos) {
-  std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>
-      feature;
-
-  feature["pawn"] = std::pair<FeatureSquareList, FeatureSquareList>(
-      FeatureSquareList(pos.pieces(WHITE, PAWN)),
-      FeatureSquareList(pos.pieces(BLACK, PAWN)));
-
-  feature["knight"] = std::pair<FeatureSquareList, FeatureSquareList>(
-      FeatureSquareList(pos.pieces(WHITE, KNIGHT)),
-      FeatureSquareList(pos.pieces(BLACK, KNIGHT)));
-
-  feature["bishop"] = std::pair<FeatureSquareList, FeatureSquareList>(
-      FeatureSquareList(pos.pieces(WHITE, BISHOP)),
-      FeatureSquareList(pos.pieces(BLACK, BISHOP)));
-
-  feature["rook"] = std::pair<FeatureSquareList, FeatureSquareList>(
-      FeatureSquareList(pos.pieces(WHITE, ROOK)),
-      FeatureSquareList(pos.pieces(BLACK, ROOK)));
-
-  feature["queen"] = std::pair<FeatureSquareList, FeatureSquareList>(
-      FeatureSquareList(pos.pieces(WHITE, QUEEN)),
-      FeatureSquareList(pos.pieces(BLACK, QUEEN)));
-
-  return feature;
-}
-
-std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>
-ExtractFeature::space(const Position &pos) {
-  return ExtractFeature::merge_white_black_features<FeatureSquareList>(
-      _space<WHITE>(Evaluation<>(pos), pos),
-      _space<BLACK>(Evaluation<>(pos), pos));
-}
-
-std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>
-ExtractFeature::mobility(const Position &pos) {
-  std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>
-      feature;
-
-  std::map<std::string, FeatureSquareList> white_feature;
-  std::map<std::string, FeatureSquareList> black_feature;
-
-  white_feature["knight"] = _mobility<WHITE, KNIGHT>(Evaluation<>(pos), pos);
-  black_feature["knight"] = _mobility<BLACK, KNIGHT>(Evaluation<>(pos), pos);
-
-  white_feature["bishop"] = _mobility<WHITE, BISHOP>(Evaluation<>(pos), pos);
-  black_feature["bishop"] = _mobility<BLACK, BISHOP>(Evaluation<>(pos), pos);
-
-  white_feature["rook"] = _mobility<WHITE, ROOK>(Evaluation<>(pos), pos);
-  black_feature["rook"] = _mobility<BLACK, ROOK>(Evaluation<>(pos), pos);
-
-  white_feature["queen"] = _mobility<WHITE, QUEEN>(Evaluation<>(pos), pos);
-  black_feature["queen"] = _mobility<BLACK, QUEEN>(Evaluation<>(pos), pos);
-
-  white_feature["all"] = _mobility<WHITE, ALL_PIECES>(Evaluation<>(pos), pos);
-  black_feature["all"] = _mobility<BLACK, ALL_PIECES>(Evaluation<>(pos), pos);
-
-  return ExtractFeature::merge_white_black_features<FeatureSquareList>(
-      white_feature, black_feature);
-}
-
-std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>
-ExtractFeature::queen(const Position &pos) {
-  return ExtractFeature::merge_white_black_features<FeatureSquareList>(
-      _queen<WHITE>(Evaluation<>(pos), pos),
-      _queen<BLACK>(Evaluation<>(pos), pos));
-}
-
-std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>
-ExtractFeature::bishop(const Position &pos) {
-  return ExtractFeature::merge_white_black_features<FeatureSquareList>(
-      _minor<WHITE, BISHOP>(Evaluation<>(pos), pos),
-      _minor<BLACK, BISHOP>(Evaluation<>(pos), pos));
-}
-
-std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>
-ExtractFeature::knight(const Position &pos) {
-  return ExtractFeature::merge_white_black_features<FeatureSquareList>(
-      _minor<WHITE, KNIGHT>(Evaluation<>(pos), pos),
-      _minor<BLACK, KNIGHT>(Evaluation<>(pos), pos));
-}
-
-
-std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>
-ExtractFeature::rook(const Position &pos) {
-  return ExtractFeature::merge_white_black_features<FeatureSquareList>(
-      _rook<WHITE>(Evaluation<>(pos), pos),
-      _rook<BLACK>(Evaluation<>(pos), pos));
-}
-
-std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>
-ExtractFeature::threats(const Position &pos) {
-  return ExtractFeature::merge_white_black_features<FeatureSquareList>(
-      _threats<WHITE>(Evaluation<>(pos), pos),
-      _threats<BLACK>(Evaluation<>(pos), pos));
-}
-
-std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>
-ExtractFeature::king(const Position &pos) {
-  return ExtractFeature::merge_white_black_features<FeatureSquareList>(
-      _king<WHITE>(Evaluation<>(pos), pos),
-      _king<BLACK>(Evaluation<>(pos), pos));
-}
-
-std::map<std::string, std::pair<FeatureSquareList, FeatureSquareList>>
-ExtractFeature::passed_pawns(const Position &pos) {
-  return ExtractFeature::merge_white_black_features<FeatureSquareList>(
-      _passed_pawns<WHITE>(Evaluation<>(pos), pos),
-      _passed_pawns<BLACK>(Evaluation<>(pos), pos));
 }

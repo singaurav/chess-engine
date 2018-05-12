@@ -27,8 +27,6 @@
 
 #include <map>
 
-#include "featextract.h"
-
 namespace Pawns {
 
 /// Pawns::Entry contains various information about a pawn structure. A lookup
@@ -63,22 +61,21 @@ struct Entry {
   }
 
   template <Color Us>
-  std::map<std::string, FeatureSquareList> _king_safety(const Position &pos, Square ksq) {
-    return _do_king_safety<Us>(pos, ksq);
+  void feat_king_safety(const Position &pos, Square ksq, ValueFeat &features) {
+    feat_do_king_safety<Us>(pos, ksq, features);
   }
 
   template<Color Us>
   Score do_king_safety(const Position& pos, Square ksq);
 
   template <Color Us>
-  std::map<std::string, FeatureSquareList> _do_king_safety(const Position &pos,
-                                                Square ksq);
+  void feat_do_king_safety(const Position &pos, Square ksq, ValueFeat &features);
 
   template<Color Us>
   Value shelter_storm(const Position& pos, Square ksq);
 
   template <Color Us>
-  std::map<std::string, double> _shelter_storm(const Position &pos, Square ksq);
+  void feat_shelter_storm(const Position &pos, Square ksq, ValueFeat &features);
 
   Key key;
   Score score;

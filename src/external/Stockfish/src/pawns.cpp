@@ -277,10 +277,7 @@ Value Entry::shelter_storm(const Position& pos, Square ksq) {
 }
 
 template <Color Us>
-std::map<std::string, double> Entry::_shelter_storm(const Position &pos,
-                                                    Square ksq) {
-  std::map<std::string, double> feature;
-
+void Entry::feat_shelter_storm(const Position &pos, Square ksq, ValueFeat &features) {
   const Color Them = (Us == WHITE ? BLACK : WHITE);
 
   enum { BlockedByKing, Unopposed, BlockedByPawn, Unblocked };
@@ -291,14 +288,6 @@ std::map<std::string, double> Entry::_shelter_storm(const Position &pos,
 
   File center = std::max(FILE_B, std::min(FILE_G, file_of(ksq)));
 
-  feature["shelter-storm-edge-distance"] = 0;
-  feature["shelter-rank-us"] = 0;
-  feature["storm-rank-them"] = 0;
-  feature["storm-type-blocked-by-king"] = 0;
-  feature["storm-type-unopposed"] = 0;
-  feature["storm-type-blocked-by-pawn"] = 0;
-  feature["storm-type-unblocked"] = 0;
-
   for (File f = center - File(1); f <= center + File(1); ++f) {
     b = ourPawns & file_bb(f);
     Rank rkUs = b ? relative_rank(Us, backmost_sq(Us, b)) : RANK_1;
@@ -307,9 +296,10 @@ std::map<std::string, double> Entry::_shelter_storm(const Position &pos,
     Rank rkThem = b ? relative_rank(Us, frontmost_sq(Them, b)) : RANK_1;
 
     int d = std::min(f, FILE_H - f);
-    feature["shelter-storm-edge-distance"] += d;
-    feature["shelter-rank-us"] += (int)rkUs;
-    feature["storm-rank-them"] += (int)rkThem;
+    features.add_count(KING__SHELTER_STORM_EDGE_DISTANCE, d);
+
+    features.add_count(KING__SHELTER_RANK_US, (int)rkUs);
+    features.add_count(KING__STORM_RANK_THEM, (int)rkThem);
 
     int type = f == file_of(ksq) && rkThem == relative_rank(Us, ksq) + 1
                    ? BlockedByKing
@@ -319,23 +309,21 @@ std::map<std::string, double> Entry::_shelter_storm(const Position &pos,
 
     switch (type) {
     case BlockedByKing:
-      feature["storm-type-blocked-by-king"] += 1;
+      features.add_count(KING__STORM_TYPE_BLOCKED_BY_KING, 1);
       break;
     case Unopposed:
-      feature["storm-type-unopposed"] += 1;
+      features.add_count(KING__STORM_TYPE_UNOPPOSED, 1);
       break;
     case BlockedByPawn:
-      feature["storm-type-blocked-by-pawn"] += 1;
+      features.add_count(KING__STORM_TYPE_BLOCKED_BY_PAWN, 1);
       break;
     case Unblocked:
-      feature["storm-type-unblocked"] += 1;
+      features.add_count(KING__STORM_TYPE_UNBLOCKED, 1);
       break;
     default:
       assert(false);
     }
   }
-
-  return feature;
 }
 
 /// Entry::do_king_safety() calculates a bonus for king safety. It is called only
@@ -365,12 +353,8 @@ Score Entry::do_king_safety(const Position& pos, Square ksq) {
 }
 
 template <Color Us>
-std::map<std::string, FeatureSquareList>
-Entry::_do_king_safety(const Position &pos, Square ksq) {
-  std::map<std::string, FeatureSquareList> feature;
-  feature["min-king-pawn-distance"] = FeatureSquareList();
-  feature["castle-king-side"] = FeatureSquareList();
-  feature["castle-queen-side"] = FeatureSquareList();
+void Entry::feat_do_king_safety(const Position &pos, Square ksq,
+                            ValueFeat &features) {
 
   int minKingPawnDistance = 0;
 
@@ -379,28 +363,24 @@ Entry::_do_king_safety(const Position &pos, Square ksq) {
     while (!(DistanceRingBB[ksq][minKingPawnDistance++] & pawns)) {
     }
 
-  feature["min-king-pawn-distance"].add_count(minKingPawnDistance);
+  features.add_count(KING__MIN_KING_PAWN_DISTANCE, minKingPawnDistance);
 
-  auto shelter_storm_feature = _shelter_storm<Us>(pos, ksq);
-
-  feature.insert(shelter_storm_feature.begin(), shelter_storm_feature.end());
+  feat_shelter_storm<Us>(pos, ksq, features);
 
   if (pos.can_castle(MakeCastling<Us, KING_SIDE>::right))
-      feature["castle-king-side"].add_count(1);
+      features.add_count(KING__CASTLE_KING_SIDE, 1);
 
   if (pos.can_castle(MakeCastling<Us, QUEEN_SIDE>::right))
-      feature["castle-queen-side"].add_count(1);
-
-  return feature;
+      features.add_count(KING__CASTLE_QUEEN_SIDE, 1);
 }
 
 // Explicit template instantiation
 template Score Entry::do_king_safety<WHITE>(const Position& pos, Square ksq);
 template Score Entry::do_king_safety<BLACK>(const Position& pos, Square ksq);
 
-template std::map<std::string, FeatureSquareList>
-Entry::_do_king_safety<WHITE>(const Position &pos, Square ksq);
-template std::map<std::string, FeatureSquareList>
-Entry::_do_king_safety<BLACK>(const Position &pos, Square ksq);
+template void Entry::feat_do_king_safety<WHITE>(const Position &pos, Square ksq,
+                                                ValueFeat &featues);
+template void Entry::feat_do_king_safety<BLACK>(const Position &pos, Square ksq,
+                                                ValueFeat &featues);
 
 } // namespace Pawns

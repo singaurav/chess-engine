@@ -26,7 +26,6 @@
 #include <sstream>
 
 #include "evaluate.h"
-#include "featextract.h"
 #include "misc.h"
 #include "movegen.h"
 #include "movepick.h"
@@ -229,7 +228,7 @@ uint64_t Search::perft(Position& pos, Depth depth, std::string mode) {
             if (mode == "eval") {
               Eval::evaluate(pos);
             } else if (mode == "comp") {
-              ExtractFeature::extract_features(pos);
+              // ExtractFeature::extract_features(pos);
               // ValueFeat left, right;
               // left > right;
             }

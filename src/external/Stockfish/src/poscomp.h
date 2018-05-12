@@ -12,6 +12,6 @@ using net_type = dlib::loss_binary_log<dlib::fc<1,
                  dlib::input<sample_type>>>>>;
 // clang-format on
 
-bool compare(const ValueFeat &left, const ValueFeat &right);
+bool compare(const CompFeat &left, const CompFeat &right);
 
 #endif // #ifndef POS_COMP_INCLUDED

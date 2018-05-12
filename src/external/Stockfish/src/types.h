@@ -195,96 +195,152 @@ enum Value : int {
   MidgameLimit  = 15258, EndgameLimit  = 3915
 };
 
-const unsigned FEATURE_COUNT = 81;
+enum FeatureName : int {
+  BISHOP__MINOR_BEHIND_PAWN = 0,
+  BISHOP__PAWN_SUPPORTED_OCCUPIED_OUTPOST,
+  BISHOP__PAWN_SUPPORTED_REACHABLE_OUTPOST,
+  BISHOP__PAWN_UNSUPPORTED_OCCUPIED_OUTPOST,
+  BISHOP__PAWN_UNSUPPORTED_REACHABLE_OUTPOST,
+  BISHOP__PAWNS_ON_SAME_COLOR_SQUARES,
+  KING__CASTLE_KING_SIDE,
+  KING__CASTLE_QUEEN_SIDE,
+  KING__CLOSE_ENEMIES_ONE,
+  KING__CLOSE_ENEMIES_TWO,
+  KING__ENEMY_OTHER_BISHOP_CHECK,
+  KING__ENEMY_OTHER_KNIGHT_CHECK,
+  KING__ENEMY_OTHER_ROOK_CHECK,
+  KING__ENEMY_SAFE_BISHOP_CHECK,
+  KING__ENEMY_SAFE_KNIGHT_CHECK,
+  KING__ENEMY_SAFE_QUEEN_CHECK,
+  KING__ENEMY_SAFE_ROOK_CHECK,
+  KING__KING_ADJ_ZONE_ATTACKS_COUNT,
+  KING__KING_ATTACKERS_COUNT,
+  KING__KING_ONLY_DEFENDED,
+  KING__MIN_KING_PAWN_DISTANCE,
+  KING__NOT_DEFENDED_LARGER_KING_RING,
+  KING__PAWNLESS_FLANK,
+  KING__SHELTER_RANK_US,
+  KING__SHELTER_STORM_EDGE_DISTANCE,
+  KING__STORM_RANK_THEM,
+  KING__STORM_TYPE_BLOCKED_BY_KING,
+  KING__STORM_TYPE_BLOCKED_BY_PAWN,
+  KING__STORM_TYPE_UNBLOCKED,
+  KING__STORM_TYPE_UNOPPOSED,
+  KNIGHT__MINOR_BEHIND_PAWN,
+  KNIGHT__PAWN_SUPPORTED_OCCUPIED_OUTPOST,
+  KNIGHT__PAWN_SUPPORTED_REACHABLE_OUTPOST,
+  KNIGHT__PAWN_UNSUPPORTED_OCCUPIED_OUTPOST,
+  KNIGHT__PAWN_UNSUPPORTED_REACHABLE_OUTPOST,
+  MATERIAL__BISHOP,
+  MATERIAL__KNIGHT,
+  MATERIAL__PAWN,
+  MATERIAL__QUEEN,
+  MATERIAL__ROOK,
+  MOBILITY__ALL,
+  MOBILITY__BISHOP,
+  MOBILITY__KNIGHT,
+  MOBILITY__QUEEN,
+  MOBILITY__ROOK,
+  PASSED_PAWNS__AVERAGE_CANDIDATE_PASSERS,
+  PASSED_PAWNS__BLOCKSQ_OUR_KING_DISTANCE,
+  PASSED_PAWNS__BLOCKSQ_THEIR_KING_DISTANCE,
+  PASSED_PAWNS__DEFENDED_BLOCK_SQUARE,
+  PASSED_PAWNS__EMPTY_BLOCKSQ,
+  PASSED_PAWNS__FRIENDLY_OCCUPIED_BLOCKSQ,
+  PASSED_PAWNS__FULLY_DEFENDED_PATH,
+  PASSED_PAWNS__HINDERED_PASSED_PAWN,
+  PASSED_PAWNS__NO_UNSAFE_BLOCKSQ,
+  PASSED_PAWNS__NO_UNSAFE_SQUARES,
+  PASSED_PAWNS__TWO_BLOCKSQ_OUR_KING_DISTANCE,
+  QUEEN__WEAK,
+  ROOK__CASTLE,
+  ROOK__ROOK_ON_OPEN_FILE,
+  ROOK__ROOK_ON_PAWN,
+  ROOK__ROOK_ON_SEMI_OPEN_FILE,
+  ROOK__TRAPPED,
+  SPACE__EXTRA_SAFE_SQUARES,
+  SPACE__SAFE_SQUARES,
+  THREATS__HANGING,
+  THREATS__HANGING_PAWN,
+  THREATS__KING_THREAT_BY_MINOR,
+  THREATS__KING_THREAT_BY_ROOK,
+  THREATS__MINOR_THREAT_BY_MINOR,
+  THREATS__MINOR_THREAT_BY_ROOK,
+  THREATS__PAWN_PUSH,
+  THREATS__PAWN_THREAT_BY_MINOR,
+  THREATS__PAWN_THREAT_BY_ROOK,
+  THREATS__QUEEN_THREAT_BY_MINOR,
+  THREATS__QUEEN_THREAT_BY_ROOK,
+  THREATS__ROOK_THREAT_BY_MINOR,
+  THREATS__ROOK_THREAT_BY_ROOK,
+  THREATS__SAFE_PAWN,
+  THREATS__THREAT_BY_KING,
+  THREATS__THREAT_BY_MINOR_RANK,
+  THREATS__THREAT_BY_ROOK_RANK,
 
-const std::pair<std::string, std::string> FEATURE_NAMES[FEATURE_COUNT] = {
-    {"bishop", "minor-behind-pawn"},
-    {"bishop", "pawn-supported-occupied-outpost"},
-    {"bishop", "pawn-supported-reachable-outpost"},
-    {"bishop", "pawn-unsupported-occupied-outpost"},
-    {"bishop", "pawn-unsupported-reachable-outpost"},
-    {"bishop", "pawns-on-same-color-squares"},
-    {"king", "castle-king-side"},
-    {"king", "castle-queen-side"},
-    {"king", "close-enemies-one"},
-    {"king", "close-enemies-two"},
-    {"king", "enemy-other-bishop-check"},
-    {"king", "enemy-other-knight-check"},
-    {"king", "enemy-other-rook-check"},
-    {"king", "enemy-safe-bishop-check"},
-    {"king", "enemy-safe-knight-check"},
-    {"king", "enemy-safe-queen-check"},
-    {"king", "enemy-safe-rook-check"},
-    {"king", "king-adj-zone-attacks-count"},
-    {"king", "king-attackers-count"},
-    {"king", "king-only-defended"},
-    {"king", "min-king-pawn-distance"},
-    {"king", "not-defended-larger-king-ring"},
-    {"king", "pawnless-flank"},
-    {"king", "shelter-rank-us"},
-    {"king", "shelter-storm-edge-distance"},
-    {"king", "storm-rank-them"},
-    {"king", "storm-type-blocked-by-king"},
-    {"king", "storm-type-blocked-by-pawn"},
-    {"king", "storm-type-unblocked"},
-    {"king", "storm-type-unopposed"},
-    {"knight", "minor-behind-pawn"},
-    {"knight", "pawn-supported-occupied-outpost"},
-    {"knight", "pawn-supported-reachable-outpost"},
-    {"knight", "pawn-unsupported-occupied-outpost"},
-    {"knight", "pawn-unsupported-reachable-outpost"},
-    {"material", "bishop"},
-    {"material", "knight"},
-    {"material", "pawn"},
-    {"material", "queen"},
-    {"material", "rook"},
-    {"mobility", "all"},
-    {"mobility", "bishop"},
-    {"mobility", "knight"},
-    {"mobility", "queen"},
-    {"mobility", "rook"},
-    {"passed-pawns", "average-candidate-passers"},
-    {"passed-pawns", "blocksq-our-king-distance"},
-    {"passed-pawns", "blocksq-their-king-distance"},
-    {"passed-pawns", "defended-block-square"},
-    {"passed-pawns", "empty-blocksq"},
-    {"passed-pawns", "friendly-occupied-blocksq"},
-    {"passed-pawns", "fully-defended-path"},
-    {"passed-pawns", "hindered-passed-pawn"},
-    {"passed-pawns", "no-unsafe-blocksq"},
-    {"passed-pawns", "no-unsafe-squares"},
-    {"passed-pawns", "two-blocksq-our-king-distance"},
-    {"queen", "weak"},
-    {"rook", "castle"},
-    {"rook", "rook-on-open-file"},
-    {"rook", "rook-on-pawn"},
-    {"rook", "rook-on-semi-open-file"},
-    {"rook", "trapped"},
-    {"space", "extra-safe-squares"},
-    {"space", "safe-squares"},
-    {"threats", "hanging"},
-    {"threats", "hanging-pawn"},
-    {"threats", "king-threat-by-minor"},
-    {"threats", "king-threat-by-rook"},
-    {"threats", "minor-threat-by-minor"},
-    {"threats", "minor-threat-by-rook"},
-    {"threats", "pawn-push"},
-    {"threats", "pawn-threat-by-minor"},
-    {"threats", "pawn-threat-by-rook"},
-    {"threats", "queen-threat-by-minor"},
-    {"threats", "queen-threat-by-rook"},
-    {"threats", "rook-threat-by-minor"},
-    {"threats", "rook-threat-by-rook"},
-    {"threats", "safe-pawn"},
-    {"threats", "threat-by-king"},
-    {"threats", "threat-by-minor-rank"},
-    {"threats", "threat-by-rook-rank"}};
+  FEATURE_COUNT
+};
 
 struct ValueFeat {
-  int16_t features[FEATURE_COUNT];
+  int total_counts[FEATURE_COUNT];
+  int square_counts[FEATURE_COUNT][64];
+
+  void reset() {
+    for (unsigned f = 0; f < FEATURE_COUNT; ++f) {
+      total_counts[f] = 0;
+
+      for (unsigned s = 0; s < 64; ++s) {
+        square_counts[f][s] = 0;
+      }
+    }
+  }
+
+  ValueFeat() {
+    reset();
+  }
+
+  void add_square(FeatureName f, int square) {
+    square_counts[f][square] += 1;
+    total_counts[f] += 1;
+  }
+
+  void add_count(FeatureName f, int count) {
+    square_counts[f][0] += count;
+    total_counts[f] += count;
+  }
+
+  void add_bitboard(FeatureName f, Bitboard b);
+  const std::string pretty(FeatureName f);
+
+  bool compare(FeatureName name, const ValueFeat &x);
+};
+
+struct CompFeat {
+  int features[FEATURE_COUNT];
+
   bool pos_inf = false;
   bool neg_inf = false;
   int mate_depth = 1000000;
+
+  void reset() {
+    for (unsigned f = 0; f < FEATURE_COUNT; ++f) {
+      features[f] = 0;
+    }
+
+    pos_inf = neg_inf = false;
+    mate_depth = 1000000;
+  }
+
+  CompFeat() {
+    reset();
+  }
+
+  CompFeat(ValueFeat &white_features, ValueFeat &black_features) {
+    for (unsigned f = 0; f < FEATURE_COUNT; ++f) {
+      features[f] = white_features.total_counts[f] -
+                    black_features.total_counts[f];
+    }
+  }
 
   bool found_mate(int depth) {
     if (mate_depth <= depth)
@@ -293,22 +349,7 @@ struct ValueFeat {
     return false;
   }
 
-  ValueFeat(
-      std::map<std::string, std::map<std::string, std::pair<int16_t, int16_t>>>
-          raw_features) {
-    for (unsigned i = 0; i < FEATURE_COUNT; ++i) {
-      features[i] =
-          raw_features[FEATURE_NAMES[i].first][FEATURE_NAMES[i].second].first -
-          raw_features[FEATURE_NAMES[i].first][FEATURE_NAMES[i].second].second;
-    }
-  }
-
-  ValueFeat() {
-    for (unsigned i = 0; i < FEATURE_COUNT; ++i)
-      features[i] = 0;
-  }
-
-  ValueFeat(std::string s) {
+  CompFeat(std::string s) {
     if (s == "+ve infinity") {
       pos_inf = true;
       neg_inf = false;
@@ -320,8 +361,8 @@ struct ValueFeat {
     }
   }
 
-  ValueFeat operator-(const ValueFeat& x) const {
-    ValueFeat minus_x;
+  CompFeat operator-(const CompFeat& x) const {
+    CompFeat minus_x;
 
     if (x.pos_inf || x.neg_inf) {
       minus_x.pos_inf = x.neg_inf;
@@ -337,28 +378,12 @@ struct ValueFeat {
     return minus_x;
   }
 
-  bool operator>(const ValueFeat& x) const;
-  bool operator<(const ValueFeat& x) const;
-
-  bool operator==(const ValueFeat& x) const {
-    for (unsigned i = 0; i < FEATURE_COUNT; ++i)
-      if (features[i] != x.features[i])
-        return false;
-
-    return true;
-  }
-
-  bool operator!=(const ValueFeat& x) const {
-    for (unsigned i = 0; i < FEATURE_COUNT; ++i)
-      if (features[i] != x.features[i])
-        return true;
-
-    return false;
-  }
+  bool operator>(const CompFeat& x) const;
+  bool operator<(const CompFeat& x) const;
 };
 
-const ValueFeat VALUE_FEAT_POS_INF("+ve infinity");
-const ValueFeat VALUE_FEAT_NEG_INF("-ve infinity");
+const CompFeat COMP_FEAT_POS_INF("+ve infinity");
+const CompFeat COMP_FEAT_NEG_INF("-ve infinity");
 
 enum PieceType {
   NO_PIECE_TYPE, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
