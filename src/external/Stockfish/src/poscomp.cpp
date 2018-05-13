@@ -6,28 +6,26 @@ static net_type NET;
 static std::string MODEL_FILE =
     "/Users/gauravpc/Desktop/Github/CE/chess-engine/data/trained_model.dat";
 
-bool greater(const CompFeat &left, const CompFeat &right) {
+float comp_value(const CompFeat &left, const CompFeat &right) {
   if (!MODEL_LOADED) {
     std::ifstream in(MODEL_FILE);
     dlib::deserialize(NET, in);
     MODEL_LOADED = true;
   }
 
-  CompFeat diff = left - right;
-
   sample_type test;
 
   for (unsigned i = 0; i < FEATURE_COUNT; ++i) {
-    test(i) = float(diff.features[i]);
+    test(i) = float(left.features[i] - right.features[i]);
   }
 
-  return NET(test) == +1;
+  return NET(test);
 }
 
 bool CompFeat::operator>(const CompFeat &x) const {
-  return greater(*this, x);
+  return comp_value(*this, x) > 0.0;
 }
 
 bool CompFeat::operator<(const CompFeat &x) const {
-  return greater(x, *this);
+  return comp_value(x, *this) > 0.0;
 }

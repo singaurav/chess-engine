@@ -362,18 +362,18 @@ struct CompFeat {
     }
   }
 
-  CompFeat operator-(const CompFeat& x) const {
+  CompFeat operator-() const {
     CompFeat minus_x;
 
-    if (x.pos_inf || x.neg_inf) {
-      minus_x.pos_inf = x.neg_inf;
-      minus_x.neg_inf = x.pos_inf;
+    if (pos_inf || neg_inf) {
+      minus_x.pos_inf = neg_inf;
+      minus_x.neg_inf = pos_inf;
 
       return minus_x;
     }
 
     for (unsigned i = 0; i < FEATURE_COUNT; ++i) {
-      minus_x.features[i] = -x.features[i];
+      minus_x.features[i] = -features[i];
     }
 
     return minus_x;
