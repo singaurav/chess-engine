@@ -28,6 +28,7 @@
 #include "evaluate.h"
 #include "material.h"
 #include "pawns.h"
+#include "poscomp.h"
 
 
 namespace {
@@ -1487,6 +1488,23 @@ namespace {
 Value Eval::evaluate(const Position& pos)
 {
    return Evaluation<>(pos).value(false);
+}
+
+Value Eval::evaluate2(const Position& pos) {
+  ValueFeat white_features, black_features;
+  Evaluation<>(pos).value_feat(white_features, black_features, true);
+
+  CompFeat left(white_features, black_features), right;
+  float x = comp_value(left, right);
+
+  if (x > 50)
+    return VALUE_KNOWN_WIN;
+  else if (x < -50)
+    return -VALUE_KNOWN_WIN;
+  else if (x >= 0)
+    return Value(int(2000.0 * x));
+  else
+    return -Value(int(2000.0 * x));
 }
 
 void Eval::evaluate_features(const Position& pos, ValueFeat& white_features,
