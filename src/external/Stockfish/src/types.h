@@ -324,9 +324,7 @@ struct CompFeat {
   int mate_depth = 1000000;
 
   void reset() {
-    for (unsigned f = 0; f < FEATURE_COUNT; ++f) {
-      features[f] = 0;
-    }
+    std::memset(features, 0, sizeof features);
 
     pos_inf = neg_inf = false;
     mate_depth = 1000000;
@@ -337,10 +335,168 @@ struct CompFeat {
   }
 
   CompFeat(ValueFeat &white_features, ValueFeat &black_features) {
-    for (unsigned f = 0; f < FEATURE_COUNT; ++f) {
-      features[f] = white_features.total_counts[f] -
-                    black_features.total_counts[f];
-    }
+    features[0] =
+        white_features.total_counts[0] - black_features.total_counts[0];
+    features[1] =
+        white_features.total_counts[1] - black_features.total_counts[1];
+    features[2] =
+        white_features.total_counts[2] - black_features.total_counts[2];
+    features[3] =
+        white_features.total_counts[3] - black_features.total_counts[3];
+    features[4] =
+        white_features.total_counts[4] - black_features.total_counts[4];
+    features[5] =
+        white_features.total_counts[5] - black_features.total_counts[5];
+    features[6] =
+        white_features.total_counts[6] - black_features.total_counts[6];
+    features[7] =
+        white_features.total_counts[7] - black_features.total_counts[7];
+    features[8] =
+        white_features.total_counts[8] - black_features.total_counts[8];
+    features[9] =
+        white_features.total_counts[9] - black_features.total_counts[9];
+    features[10] =
+        white_features.total_counts[10] - black_features.total_counts[10];
+    features[11] =
+        white_features.total_counts[11] - black_features.total_counts[11];
+    features[12] =
+        white_features.total_counts[12] - black_features.total_counts[12];
+    features[13] =
+        white_features.total_counts[13] - black_features.total_counts[13];
+    features[14] =
+        white_features.total_counts[14] - black_features.total_counts[14];
+    features[15] =
+        white_features.total_counts[15] - black_features.total_counts[15];
+    features[16] =
+        white_features.total_counts[16] - black_features.total_counts[16];
+    features[17] =
+        white_features.total_counts[17] - black_features.total_counts[17];
+    features[18] =
+        white_features.total_counts[18] - black_features.total_counts[18];
+    features[19] =
+        white_features.total_counts[19] - black_features.total_counts[19];
+    features[20] =
+        white_features.total_counts[20] - black_features.total_counts[20];
+    features[21] =
+        white_features.total_counts[21] - black_features.total_counts[21];
+    features[22] =
+        white_features.total_counts[22] - black_features.total_counts[22];
+    features[23] =
+        white_features.total_counts[23] - black_features.total_counts[23];
+    features[24] =
+        white_features.total_counts[24] - black_features.total_counts[24];
+    features[25] =
+        white_features.total_counts[25] - black_features.total_counts[25];
+    features[26] =
+        white_features.total_counts[26] - black_features.total_counts[26];
+    features[27] =
+        white_features.total_counts[27] - black_features.total_counts[27];
+    features[28] =
+        white_features.total_counts[28] - black_features.total_counts[28];
+    features[29] =
+        white_features.total_counts[29] - black_features.total_counts[29];
+    features[30] =
+        white_features.total_counts[30] - black_features.total_counts[30];
+    features[31] =
+        white_features.total_counts[31] - black_features.total_counts[31];
+    features[32] =
+        white_features.total_counts[32] - black_features.total_counts[32];
+    features[33] =
+        white_features.total_counts[33] - black_features.total_counts[33];
+    features[34] =
+        white_features.total_counts[34] - black_features.total_counts[34];
+    features[35] =
+        white_features.total_counts[35] - black_features.total_counts[35];
+    features[36] =
+        white_features.total_counts[36] - black_features.total_counts[36];
+    features[37] =
+        white_features.total_counts[37] - black_features.total_counts[37];
+    features[38] =
+        white_features.total_counts[38] - black_features.total_counts[38];
+    features[39] =
+        white_features.total_counts[39] - black_features.total_counts[39];
+    features[40] =
+        white_features.total_counts[40] - black_features.total_counts[40];
+    features[41] =
+        white_features.total_counts[41] - black_features.total_counts[41];
+    features[42] =
+        white_features.total_counts[42] - black_features.total_counts[42];
+    features[43] =
+        white_features.total_counts[43] - black_features.total_counts[43];
+    features[44] =
+        white_features.total_counts[44] - black_features.total_counts[44];
+    features[45] =
+        white_features.total_counts[45] - black_features.total_counts[45];
+    features[46] =
+        white_features.total_counts[46] - black_features.total_counts[46];
+    features[47] =
+        white_features.total_counts[47] - black_features.total_counts[47];
+    features[48] =
+        white_features.total_counts[48] - black_features.total_counts[48];
+    features[49] =
+        white_features.total_counts[49] - black_features.total_counts[49];
+    features[50] =
+        white_features.total_counts[50] - black_features.total_counts[50];
+    features[51] =
+        white_features.total_counts[51] - black_features.total_counts[51];
+    features[52] =
+        white_features.total_counts[52] - black_features.total_counts[52];
+    features[53] =
+        white_features.total_counts[53] - black_features.total_counts[53];
+    features[54] =
+        white_features.total_counts[54] - black_features.total_counts[54];
+    features[55] =
+        white_features.total_counts[55] - black_features.total_counts[55];
+    features[56] =
+        white_features.total_counts[56] - black_features.total_counts[56];
+    features[57] =
+        white_features.total_counts[57] - black_features.total_counts[57];
+    features[58] =
+        white_features.total_counts[58] - black_features.total_counts[58];
+    features[59] =
+        white_features.total_counts[59] - black_features.total_counts[59];
+    features[60] =
+        white_features.total_counts[60] - black_features.total_counts[60];
+    features[61] =
+        white_features.total_counts[61] - black_features.total_counts[61];
+    features[62] =
+        white_features.total_counts[62] - black_features.total_counts[62];
+    features[63] =
+        white_features.total_counts[63] - black_features.total_counts[63];
+    features[64] =
+        white_features.total_counts[64] - black_features.total_counts[64];
+    features[65] =
+        white_features.total_counts[65] - black_features.total_counts[65];
+    features[66] =
+        white_features.total_counts[66] - black_features.total_counts[66];
+    features[67] =
+        white_features.total_counts[67] - black_features.total_counts[67];
+    features[68] =
+        white_features.total_counts[68] - black_features.total_counts[68];
+    features[69] =
+        white_features.total_counts[69] - black_features.total_counts[69];
+    features[70] =
+        white_features.total_counts[70] - black_features.total_counts[70];
+    features[71] =
+        white_features.total_counts[71] - black_features.total_counts[71];
+    features[72] =
+        white_features.total_counts[72] - black_features.total_counts[72];
+    features[73] =
+        white_features.total_counts[73] - black_features.total_counts[73];
+    features[74] =
+        white_features.total_counts[74] - black_features.total_counts[74];
+    features[75] =
+        white_features.total_counts[75] - black_features.total_counts[75];
+    features[76] =
+        white_features.total_counts[76] - black_features.total_counts[76];
+    features[77] =
+        white_features.total_counts[77] - black_features.total_counts[77];
+    features[78] =
+        white_features.total_counts[78] - black_features.total_counts[78];
+    features[79] =
+        white_features.total_counts[79] - black_features.total_counts[79];
+    features[80] =
+        white_features.total_counts[80] - black_features.total_counts[80];
   }
 
   bool found_mate(int depth) {
@@ -372,9 +528,87 @@ struct CompFeat {
       return minus_x;
     }
 
-    for (unsigned i = 0; i < FEATURE_COUNT; ++i) {
-      minus_x.features[i] = -features[i];
-    }
+    minus_x.features[0] = -features[0];
+    minus_x.features[1] = -features[1];
+    minus_x.features[2] = -features[2];
+    minus_x.features[3] = -features[3];
+    minus_x.features[4] = -features[4];
+    minus_x.features[5] = -features[5];
+    minus_x.features[6] = -features[6];
+    minus_x.features[7] = -features[7];
+    minus_x.features[8] = -features[8];
+    minus_x.features[9] = -features[9];
+    minus_x.features[10] = -features[10];
+    minus_x.features[11] = -features[11];
+    minus_x.features[12] = -features[12];
+    minus_x.features[13] = -features[13];
+    minus_x.features[14] = -features[14];
+    minus_x.features[15] = -features[15];
+    minus_x.features[16] = -features[16];
+    minus_x.features[17] = -features[17];
+    minus_x.features[18] = -features[18];
+    minus_x.features[19] = -features[19];
+    minus_x.features[20] = -features[20];
+    minus_x.features[21] = -features[21];
+    minus_x.features[22] = -features[22];
+    minus_x.features[23] = -features[23];
+    minus_x.features[24] = -features[24];
+    minus_x.features[25] = -features[25];
+    minus_x.features[26] = -features[26];
+    minus_x.features[27] = -features[27];
+    minus_x.features[28] = -features[28];
+    minus_x.features[29] = -features[29];
+    minus_x.features[30] = -features[30];
+    minus_x.features[31] = -features[31];
+    minus_x.features[32] = -features[32];
+    minus_x.features[33] = -features[33];
+    minus_x.features[34] = -features[34];
+    minus_x.features[35] = -features[35];
+    minus_x.features[36] = -features[36];
+    minus_x.features[37] = -features[37];
+    minus_x.features[38] = -features[38];
+    minus_x.features[39] = -features[39];
+    minus_x.features[40] = -features[40];
+    minus_x.features[41] = -features[41];
+    minus_x.features[42] = -features[42];
+    minus_x.features[43] = -features[43];
+    minus_x.features[44] = -features[44];
+    minus_x.features[45] = -features[45];
+    minus_x.features[46] = -features[46];
+    minus_x.features[47] = -features[47];
+    minus_x.features[48] = -features[48];
+    minus_x.features[49] = -features[49];
+    minus_x.features[50] = -features[50];
+    minus_x.features[51] = -features[51];
+    minus_x.features[52] = -features[52];
+    minus_x.features[53] = -features[53];
+    minus_x.features[54] = -features[54];
+    minus_x.features[55] = -features[55];
+    minus_x.features[56] = -features[56];
+    minus_x.features[57] = -features[57];
+    minus_x.features[58] = -features[58];
+    minus_x.features[59] = -features[59];
+    minus_x.features[60] = -features[60];
+    minus_x.features[61] = -features[61];
+    minus_x.features[62] = -features[62];
+    minus_x.features[63] = -features[63];
+    minus_x.features[64] = -features[64];
+    minus_x.features[65] = -features[65];
+    minus_x.features[66] = -features[66];
+    minus_x.features[67] = -features[67];
+    minus_x.features[68] = -features[68];
+    minus_x.features[69] = -features[69];
+    minus_x.features[70] = -features[70];
+    minus_x.features[71] = -features[71];
+    minus_x.features[72] = -features[72];
+    minus_x.features[73] = -features[73];
+    minus_x.features[74] = -features[74];
+    minus_x.features[75] = -features[75];
+    minus_x.features[76] = -features[76];
+    minus_x.features[77] = -features[77];
+    minus_x.features[78] = -features[78];
+    minus_x.features[79] = -features[79];
+    minus_x.features[80] = -features[80];
 
     return minus_x;
   }
