@@ -23,6 +23,12 @@ float comp_value(const CompFeat &left, const CompFeat &right) {
 }
 
 bool CompFeat::operator>(const CompFeat &x) const {
+  if (pos_inf || x.neg_inf)
+    return true;
+
+  if (neg_inf || x.pos_inf)
+    return false;
+
   return comp_value(*this, x) > 0.0;
 }
 
