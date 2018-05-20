@@ -39,13 +39,14 @@ void train(std::istream &in, std::ostream &out) {
   net_type net;
 
   dnn_trainer<net_type, adam> trainer(net, adam(0.0, 0.9, 0.999));
-  trainer.set_learning_rate(1e-4);
+  trainer.set_learning_rate(2e-4);
   trainer.set_learning_rate_shrink_factor(1);
+  trainer.set_min_learning_rate(1e-10);
   trainer.set_mini_batch_size(8);
 
   std::cout.precision(2);
 
-  for (int e = 5; e < 300; e += 5) {
+  for (int e = 10; e < 1000; e += 10) {
     trainer.set_max_num_epochs(e);
     trainer.train(train_samples, train_labels);
     std::cout << " --- Epochs:" << std::setw(6) << e

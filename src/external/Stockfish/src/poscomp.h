@@ -8,7 +8,7 @@ typedef dlib::matrix<float, FEATURE_COUNT, 1> sample_type;
 
 // clang-format off
 using net_type = dlib::loss_binary_log<dlib::fc<1,
-                 dlib::htan<dlib::fc<230,
+                 dlib::htan<dlib::fc<280,
                  dlib::input<sample_type>>>>>;
 // clang-format on
 

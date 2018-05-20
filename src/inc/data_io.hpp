@@ -57,6 +57,9 @@ void load_train_test(std::istream &in, float test_perc,
     }
   }
 
+  randomize_samples(train_samples, train_labels);
+  randomize_samples(test_samples, test_labels);
+
   std::cout << "Training sample size: " << train_samples.size() << std::endl
             << "Test sample size: " << test_samples.size() << std::endl;
 }
