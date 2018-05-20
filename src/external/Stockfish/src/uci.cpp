@@ -138,6 +138,73 @@ namespace {
     Threads.start_thinking(pos, States, limits);
   }
 
+  typedef struct tagLINE {
+    int cmove = 0;
+    Move argmove[50];
+  } LINE;
+
+  CompFeat AlphaBeta(Position &pos, int depth, LINE *pline) {
+    LINE line;
+
+    CompFeat alpha("-ve infinity");
+
+    if (depth == 0) {
+      pline->cmove = 0;
+      return Eval::evaluate_comp_features(pos);
+    }
+
+    for (const auto& m : MoveList<LEGAL>(pos)) {
+      // sync_cout << "considering: " << UCI::move(m, false) << sync_endl;
+
+      StateInfo st;
+
+      pos.do_move(m, st);
+      CompFeat val = -AlphaBeta(pos, depth - 1, &line);
+      pos.undo_move(m);
+
+      // if (val > beta) {
+      //   // sync_cout << "pruned" << sync_endl;
+      //
+      //   return beta;
+      // }
+
+      if (val > alpha) {
+        // sync_cout << "improving alpha" << sync_endl;
+
+        alpha = val;
+
+        pline->argmove[0] = m;
+
+        // sync_cout << line.cmove << sync_endl;
+
+        memcpy(pline->argmove + 1, line.argmove, line.cmove * sizeof(Move));
+
+        pline->cmove = line.cmove + 1;
+
+        // sync_cout << "alpha improved" << sync_endl;
+      }
+    }
+
+    return alpha;
+  }
+
+  void go_(Position &pos, istringstream& is) {
+    LINE pline;
+    CompFeat alpha("-ve infinity");
+    CompFeat beta("+ve infinity");
+
+    int depth;
+    is >> depth;
+
+    AlphaBeta(pos, depth, &pline);
+
+    for (int i = 0; i < pline.cmove; ++i) {
+      sync_cout << "move: <" << UCI::move(pline.argmove[i], false) << ">" << sync_endl;
+    }
+
+    sync_cout << "end" << sync_endl;
+  }
+
   void print_moves(const Position &pos) {
     auto moveList = MoveList<LEGAL>(pos);
     for (const Move &move : moveList) {
@@ -195,6 +262,7 @@ void UCI::run_command(std::string token, istringstream& is, Position& pos) {
   else if (token == "ucinewgame") newgame();
   else if (token == "isready")    sync_cout << "readyok" << sync_endl;
   else if (token == "go")         go(pos, is);
+  else if (token == "go_")        go_(pos, is);
   else if (token == "genmoves")   print_moves(pos);
   else if (token == "featextract") print_features(pos);
   else if (token == "position")   position(pos, is);
