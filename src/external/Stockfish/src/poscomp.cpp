@@ -1,11 +1,10 @@
 #include "poscomp.h"
 #include <fstream>
-#include <iostream>
 
 static bool MODEL_LOADED = false;
 static net_type NET;
 static std::string MODEL_FILE =
-    "/Users/gauravpc/Desktop/Github/CE/chess-engine/data/trained_model.dat";
+    "/Users/gauravpc/Desktop/Github/CE/chess-engine/data/trained_model.dat"; 
 
 float comp_value(const CompFeat &left, const CompFeat &right) {
   if (!MODEL_LOADED) {
@@ -112,11 +111,5 @@ bool CompFeat::operator>(const CompFeat &x) const {
 }
 
 bool CompFeat::operator<(const CompFeat &x) const {
-  if (pos_inf || x.neg_inf)
-    return false;
-
-  if (neg_inf || x.pos_inf)
-    return true;
-
-  return comp_value(*this, x) < 0.0;
+  return comp_value(x, *this) > 0.0;
 }

@@ -34,6 +34,7 @@ const Value Tempo = Value(20); // Must be visible to search
 std::string trace(const Position& pos);
 
 Value evaluate(const Position& pos);
+Value evaluate2(const Position& pos);
 void evaluate_features(const Position& pos, ValueFeat& white_features,
                        ValueFeat& black_features);
 CompFeat evaluate_comp_features(const Position& pos);
